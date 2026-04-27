@@ -138,3 +138,10 @@ Notes:
 - LOOM `Deeds Extent` now imports into `Under Roof` as floor size.
 - For LOOM sectional-title imports, `Surveyor General Extent` is not used as Erf Size because it is normally the scheme / parent extent.
 - If no real land size is provided, Erf Size stays blank.
+
+
+## v18 behaviour update
+- The app opens clean on every page load.
+- Uploading a new LOOM/TVA property report resets the whole app first, then imports the new PDF data.
+- Market statistics, price per m², API and recommended price calculations stay blank until a recognised property report PDF has been imported.
+- Manual entry is still available for client, property, agent, FICA/compliance and PDF export fields.

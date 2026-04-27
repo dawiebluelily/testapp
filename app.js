@@ -1,4 +1,4 @@
-const STORAGE_KEY = "blue-lily-cma-builder-v9";
+const STORAGE_KEY = "blue-lily-cma-builder-v18";
 const AUTO_SAVE_ENABLED = false;
 const AGENT_SHEET_ID = "1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY";
 const AGENT_SHEET_NAME = "Sheet1";
@@ -300,7 +300,9 @@ const defaultData = {
   water: "No",
   standardDocs: "Yes",
   activeImages: [],
-  offerImages: []
+  offerImages: [],
+  reportImported: false,
+  reportType: ""
 };
 
 const sampleData = {
@@ -312,6 +314,8 @@ const sampleData = {
   agentPhone: "+271234567890",
   agentEmail: "dawie@bluelilysa.co.za",
   agentWebsite: AGENT_WEBSITE,
+  reportImported: true,
+  reportType: "Output Example",
   erfSize: "1000",
   underRoof: "400",
   purchasePrice: "1750000",
@@ -542,13 +546,16 @@ function bindInputs(){
   document.getElementById("activeImages").addEventListener("change", event => handleImages(event, "activeImages", 5));
   document.getElementById("offerImages").addEventListener("change", event => handleImages(event, "offerImages", 5));
   document.getElementById("loadSample").addEventListener("click", () => {
-    state = { ...sampleData };
+    state = { ...sampleData, soldRows: normalizeRowArray(sampleData.soldRows, 8), activeRows: normalizeRowArray(sampleData.activeRows, 7), activeImages: [], offerImages: [], reportImported: true, reportType: "Output Example" };
+    resetFileInputs();
     syncForm();
     saveState();
     render();
+    setReportStatus("Loaded output example. Market statistics calculations are active for this example.");
   });
   document.getElementById("clearData").addEventListener("click", () => {
     state = makeCleanState();
+    resetFileInputs();
     syncForm();
     saveState();
     render();
@@ -579,7 +586,15 @@ function handleImages(event, key, limit){
 async function handlePropertyReportUpload(event){
   const file = event.target.files && event.target.files[0];
   if(!file) return;
-  setReportStatus("Reading property report PDF...");
+
+  // A new property report must always start from a clean app state.
+  // This prevents old owners, market rows, photos or calculations from carrying over.
+  state = makeCleanState();
+  resetFileInputs({ keepReportInput: true });
+  syncForm();
+  render();
+  setReportStatus("Reading property report PDF and resetting the CMA...");
+
   try{
     const text = await extractPdfText(file);
     const parsed = parseImportedReportText(text);
@@ -589,11 +604,14 @@ async function handlePropertyReportUpload(event){
     applyImportedReport(parsed);
     const rowsLoaded = parsed.soldRows ? Math.min(parsed.soldRows.length, 8) : 0;
     const rowText = rowsLoaded ? ` ${rowsLoaded} comparable sale row${rowsLoaded === 1 ? "" : "s"} loaded.` : "";
-    setReportStatus(`Imported ${parsed.type}. Owner, address, property details and market fields were pre-populated where found.${rowText} You can still edit every field manually.`);
+    setReportStatus(`Imported ${parsed.type}. Market statistics calculations are now active.${rowText} You can still edit every field manually.`);
   }catch(error){
     console.error("Property report import failed:", error);
-    setReportStatus("Could not import this PDF. You can still complete the CMA manually, or try a LOOM CMA / TVA Property Report PDF.");
-    alert("The property report could not be imported. You can still complete the CMA manually.");
+    state = makeCleanState();
+    syncForm();
+    render();
+    setReportStatus("Could not import this PDF. The app has been reset. You can still complete the CMA manually, but market stats calculations only activate after a recognised property report PDF is imported.");
+    alert("The property report could not be imported. The app has been reset.");
   }finally{
     event.target.value = "";
   }
@@ -965,6 +983,12 @@ function findAutomatedValuation(lines){
 }
 
 function applyImportedReport(parsed){
+  state.reportImported = true;
+  state.reportType = parsed.type || "Property Report";
+  state.soldRows = blankRows(8);
+  state.activeRows = blankRows(7);
+  state.activeImages = [];
+  state.offerImages = [];
   const incoming = parsed.data || {};
   const simpleFields = [
     "owner", "address", "erfSize", "underRoof", "purchasePrice", "purchaseDate",
@@ -1214,36 +1238,38 @@ function render(){
 
 function computedView(){
   ensureRows();
-  const sold = normalizeComparableRows(state.soldRows);
-  const active = normalizeComparableRows(state.activeRows);
-  const soldPrices = sold.map(row => row.salesPrice).filter(Boolean);
-  const activePrices = active.map(row => row.salesPrice).filter(Boolean);
-  const soldPsm = sold.map(row => row.pricePsm).filter(Boolean);
-  const activePsm = active.map(row => row.pricePsm).filter(Boolean);
+  const canCalculateMarketStats = Boolean(state.reportImported);
+  const sold = canCalculateMarketStats ? normalizeComparableRows(state.soldRows) : normalizeComparableRows(state.soldRows).map(row => ({ ...row, pricePsm: 0 }));
+  const active = canCalculateMarketStats ? normalizeComparableRows(state.activeRows) : normalizeComparableRows(state.activeRows).map(row => ({ ...row, pricePsm: 0 }));
+
+  const soldPrices = canCalculateMarketStats ? sold.map(row => row.salesPrice).filter(Boolean) : [];
+  const activePrices = canCalculateMarketStats ? active.map(row => row.salesPrice).filter(Boolean) : [];
+  const soldPsm = canCalculateMarketStats ? sold.map(row => row.pricePsm).filter(Boolean) : [];
+  const activePsm = canCalculateMarketStats ? active.map(row => row.pricePsm).filter(Boolean) : [];
   const underRoof = number(state.underRoof);
 
-  const soldEstimateHigh = underRoof && soldPsm.length ? underRoof * max(soldPsm) : 0;
-  const soldEstimateLow = underRoof && soldPsm.length ? underRoof * min(soldPsm) : 0;
-  const activeEstimateHigh = underRoof && activePsm.length ? underRoof * max(activePsm) : 0;
-  const activeEstimateLow = underRoof && activePsm.length ? underRoof * min(activePsm) : 0;
+  const soldEstimateHigh = canCalculateMarketStats && underRoof && soldPsm.length ? underRoof * max(soldPsm) : 0;
+  const soldEstimateLow = canCalculateMarketStats && underRoof && soldPsm.length ? underRoof * min(soldPsm) : 0;
+  const activeEstimateHigh = canCalculateMarketStats && underRoof && activePsm.length ? underRoof * max(activePsm) : 0;
+  const activeEstimateLow = canCalculateMarketStats && underRoof && activePsm.length ? underRoof * min(activePsm) : 0;
 
-  const recommendedValues = [
+  const recommendedValues = canCalculateMarketStats ? [
     ...soldPrices,
     ...activePrices,
     soldEstimateHigh,
     soldEstimateLow,
     activeEstimateHigh,
     activeEstimateLow
-  ].filter(Boolean);
+  ].filter(Boolean) : [];
 
-  const calculatedMarketValue = average(recommendedValues);
-  const manualMarket = number(state.marketValue);
-  const market = calculatedMarketValue || manualMarket || number(state.medianPrice) || 0;
-  const recentSales = number(state.recentSales);
-  const competing = number(state.competing);
+  const calculatedMarketValue = canCalculateMarketStats ? average(recommendedValues) : 0;
+  const manualMarket = canCalculateMarketStats ? number(state.marketValue) : 0;
+  const market = canCalculateMarketStats ? (calculatedMarketValue || manualMarket || number(state.medianPrice) || 0) : 0;
+  const recentSales = canCalculateMarketStats ? number(state.recentSales) : 0;
+  const competing = canCalculateMarketStats ? number(state.competing) : 0;
   const soldPerMonth = recentSales ? recentSales / 12 : 0;
   const api = competing ? soldPerMonth / competing : 0;
-  const marketType = api > 0.2 ? "Sellers Market" : (api < 0.15 ? "Buyers Market" : "Shifting Market");
+  const marketType = canCalculateMarketStats && api ? (api > 0.2 ? "Sellers Market" : (api < 0.15 ? "Buyers Market" : "Shifting Market")) : "";
 
   const recommendation = state.recommendation === "Custom" && state.recommendationText.trim()
     ? state.recommendationText.trim()
@@ -1252,30 +1278,30 @@ function computedView(){
   return {
     purchaseDateFormatted: formatDate(state.purchaseDate),
     recommendationFinal: recommendation,
-    highestPrice: max(soldPrices) || number(state.highestPrice),
-    lowestPrice: min(soldPrices) || number(state.lowestPrice),
-    medianPrice: median(soldPrices) || number(state.medianPrice),
-    avgPsm: average(soldPsm) || number(state.avgPsm),
+    highestPrice: canCalculateMarketStats ? (max(soldPrices) || number(state.highestPrice)) : "",
+    lowestPrice: canCalculateMarketStats ? (min(soldPrices) || number(state.lowestPrice)) : "",
+    medianPrice: canCalculateMarketStats ? (median(soldPrices) || number(state.medianPrice)) : "",
+    avgPsm: canCalculateMarketStats ? (average(soldPsm) || number(state.avgPsm)) : "",
     marketValue: market,
     calculatedMarketValue,
     soldRows: sold,
     activeRows: active,
-    soldHighestSales: max(soldPrices),
-    soldHighestPsm: max(soldPsm),
-    soldAveragePsm: average(soldPsm),
-    soldLowestSales: min(soldPrices),
-    soldAveragePrice: average(soldPrices),
-    soldMedianPrice: median(soldPrices),
-    activeHighestPrice: max(activePrices),
-    activeLowestPrice: min(activePrices),
-    activeHighestPsm: max(activePsm),
+    soldHighestSales: canCalculateMarketStats ? max(soldPrices) : "",
+    soldHighestPsm: canCalculateMarketStats ? max(soldPsm) : "",
+    soldAveragePsm: canCalculateMarketStats ? average(soldPsm) : "",
+    soldLowestSales: canCalculateMarketStats ? min(soldPrices) : "",
+    soldAveragePrice: canCalculateMarketStats ? average(soldPrices) : "",
+    soldMedianPrice: canCalculateMarketStats ? median(soldPrices) : "",
+    activeHighestPrice: canCalculateMarketStats ? max(activePrices) : "",
+    activeLowestPrice: canCalculateMarketStats ? min(activePrices) : "",
+    activeHighestPsm: canCalculateMarketStats ? max(activePsm) : "",
     soldEstimateHigh,
     soldEstimateLow,
     activeEstimateHigh,
     activeEstimateLow,
-    soldPerMonth,
-    api,
-    apiPercent: api ? `${Math.round(api * 100)}%` : "",
+    soldPerMonth: canCalculateMarketStats ? soldPerMonth : "",
+    api: canCalculateMarketStats ? api : "",
+    apiPercent: canCalculateMarketStats && api ? `${Math.round(api * 100)}%` : "",
     marketType,
     priceNames: {
       below15: "Fixer Upper",
@@ -1376,7 +1402,16 @@ function normalizeRowArray(rows, length){
 }
 
 function makeCleanState(){
-  return { ...defaultData, soldRows: blankRows(8), activeRows: blankRows(7), activeImages: [], offerImages: [] };
+  return {
+    ...defaultData,
+    agentWebsite: AGENT_WEBSITE,
+    soldRows: blankRows(8),
+    activeRows: blankRows(7),
+    activeImages: [],
+    offerImages: [],
+    reportImported: false,
+    reportType: ""
+  };
 }
 
 function renderImages(targetId, images, limit){
@@ -1642,13 +1677,14 @@ function safeName(value){
 }
 
 
-function resetFileInputs(){
+function resetFileInputs(options = {}){
   document.querySelectorAll('input[type="file"]').forEach(input => {
+    if(options.keepReportInput && input.id === "propertyReportPdf") return;
     input.value = "";
   });
   const reportStatus = document.getElementById("propertyReportStatus");
   if(reportStatus){
-    reportStatus.textContent = "No property report imported. Manual entry is still fully available.";
+    reportStatus.textContent = "No property report imported. Manual entry is available, but market stats calculations only activate after a recognised LOOM/TVA property report PDF is uploaded.";
   }
 }
 
