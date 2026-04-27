@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blue Lily CMA App</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="topbar no-print">
+    <div>
+      <div class="eyebrow">Blue Lily Properties</div>
+      <h1>CMA PDF Builder</h1>
+      <p>Fill out the fields, add optional screenshots/photos, then export the 10-page CMA PDF.</p>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" id="loadSample" class="btn ghost">Load output example</button>
+      <button type="button" id="clearData" class="btn ghost">Clear</button>
+      <button type="button" id="saveJson" class="btn ghost">Download backup</button>
+      <label class="btn ghost upload-label">Import backup<input id="importJson" type="file" accept="application/json" hidden /></label>
+      <button type="button" id="exportPdf" class="btn primary">Export PDF</button>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <aside class="form-panel no-print">
+      <section class="form-card open report-import-card">
+        <h2>0. Optional Property Report / CMA Import</h2>
+        <p class="small-note">Upload a LOOM CMA or TVA Property Report PDF to pre-populate the CMA. This is optional - leave it blank to complete everything manually. After importing, every field remains editable.</p>
+        <label class="full file-line">Upload property report / CMA PDF<input id="propertyReportPdf" type="file" accept="application/pdf" /></label>
+        <div id="propertyReportStatus" class="backend-status full">No property report imported. Manual entry is still fully available.</div>
+      </section>
+
+      <section class="form-card open">
+        <h2>1. Cover / Agent Details</h2>
+        <div class="grid two">
+          <label>Owner<input data-field="owner" type="text" /></label>
+          <label>Address<input data-field="address" type="text" /></label>
+          <label>Prepared by<select data-field="preparedBy" class="agent-select"><option value="">Loading agents...</option></select></label>
+          <label>Agent FFC<input data-field="agentFfc" type="text" /></label>
+          <label>Number<input data-field="agentPhone" type="text" /></label>
+          <label>Email<input data-field="agentEmail" type="email" /></label>
+          <label class="full">Website<input data-field="agentWebsite" type="text" value="bluelilysa.co.za" readonly /></label>
+          <div id="agentSheetStatus" class="backend-status full">Agent list connects to Google Sheet backend.</div>
+        </div>
+      </section>
+
+      <section class="form-card open">
+        <h2>2. Property Information</h2>
+        <div class="grid two">
+          <label>Erf size m²<input data-field="erfSize" type="number" min="0" /></label>
+          <label>Under roof m²<input data-field="underRoof" type="number" min="0" /></label>
+          <label>Purchase price<input data-field="purchasePrice" type="number" min="0" step="1000" /></label>
+          <label>Purchase date<input data-field="purchaseDate" type="date" /></label>
+          <label>Property type<select data-field="propertyType" class="property-type-select"></select></label>
+          <label>Condition
+            <select data-field="condition">
+              <option>Fixer Upper</option>
+              <option>TLC Required</option>
+              <option>Good</option>
+              <option>Excellent</option>
+              <option>Exceptional</option>
+            </select>
+          </label>
+          <label>Key feature 1<input data-field="feature1" type="text" /></label>
+          <label>Less ideal feature 1<input data-field="less1" type="text" /></label>
+          <label>Key feature 2<input data-field="feature2" type="text" /></label>
+          <label>Less ideal feature 2<input data-field="less2" type="text" /></label>
+          <label>Key feature 3<input data-field="feature3" type="text" /></label>
+          <label>Less ideal feature 3<input data-field="less3" type="text" /></label>
+        </div>
+      </section>
+
+      <section class="form-card open market-calc-card">
+        <h2>3. Market Statistics / Price Calculator</h2>
+        <p class="small-note">This follows Sheet 1: sold comparables, current competition, recommended price, price bands and API market type.</p>
+        <div class="grid two">
+          <label>Market area<input data-field="marketArea" type="text" /></label>
+          <label>Competing properties / advertised in 12 months<input data-field="competing" type="number" min="0" /></label>
+          <label>Recent sales / sold in past 12 months<input data-field="recentSales" type="number" min="0" /></label>
+        </div>
+
+        <div class="calc-block">
+          <h3>Sold in the past year similar to client property</h3>
+          <div class="comp-head"><span>Plot size m²</span><span>Built area m²</span><span>Sales price</span><span>Price / m²</span></div>
+          <div id="soldRows" class="comp-table"></div>
+        </div>
+
+        <div class="calc-block">
+          <h3>Currently on the market</h3>
+          <div class="comp-head"><span>Plot size m²</span><span>Built area m²</span><span>Sales price</span><span>Price / m²</span></div>
+          <div id="activeRows" class="comp-table"></div>
+        </div>
+
+        <div class="calc-summary">
+          <div><span>Lowest Sales Price</span><b data-calc="lowestPrice" data-money="true"></b></div>
+          <div><span>Average Sold Price</span><b data-calc="soldAveragePrice" data-money="true"></b></div>
+          <div><span>Median</span><b data-calc="medianPrice" data-money="true"></b></div>
+          <div><span>Recommended Price</span><b data-calc="marketValue" data-money="true"></b></div>
+          <div><span>Highest Sold</span><b data-calc="highestPrice" data-money="true"></b></div>
+          <div><span>Average Price per m²</span><b data-calc="avgPsm" data-money="true"></b></div>
+          <div><span>Highest Advertised</span><b data-calc="activeHighestPrice" data-money="true"></b></div>
+          <div><span>Lowest Advertised</span><b data-calc="activeLowestPrice" data-money="true"></b></div>
+          <div><span>Highest Advertised Price per m²</span><b data-calc="activeHighestPsm" data-money="true"></b></div>
+          <div><span>Sold per month</span><b data-calc="soldPerMonth"></b></div>
+          <div><span>API</span><b data-calc="apiPercent"></b></div>
+          <div><span>Type of Market</span><b data-calc="marketType"></b></div>
+        </div>
+
+        <div class="calc-summary price-bands-summary">
+          <div><span>Fixer Upper / 15% Below</span><b data-price="below15"></b></div>
+          <div><span>Needs Some Work / 10% Below</span><b data-price="below10"></b></div>
+          <div><span>Recommended</span><b data-price="market"></b></div>
+          <div><span>Good / 10% Above</span><b data-price="above10"></b></div>
+          <div><span>Exceptional / 15% Above</span><b data-price="above15"></b></div>
+        </div>
+
+        <div class="grid two">
+          <label class="full">Recommendation
+            <select data-field="recommendation">
+              <option>Market Value</option>
+              <option>10% Below</option>
+              <option>15% Below</option>
+              <option>10% Above</option>
+              <option>15% Above</option>
+              <option>Custom</option>
+            </select>
+          </label>
+          <label class="full">Custom recommendation text<input data-field="recommendationText" type="text" placeholder="Recommended to sell at market value" /></label>
+        </div>
+      </section>
+
+      <section class="form-card">
+        <h2>4. Competition Images</h2>
+        <p class="small-note">Upload screenshots or photos. They stay in the browser only.</p>
+        <label class="full file-line">On the market images<input id="activeImages" type="file" accept="image/*" multiple /></label>
+        <div id="activeList" class="image-list"></div>
+        <label class="full file-line">Under offer screenshots<input id="offerImages" type="file" accept="image/*" multiple /></label>
+        <div id="offerList" class="image-list"></div>
+      </section>
+
+      <section class="form-card open">
+        <h2>5. FICA / Compliance</h2>
+        <div class="grid two">
+          <label>FICA type 1<select data-field="fica1" class="fica-select"></select></label>
+          <label>FICA type 2<select data-field="fica2" class="fica-select optional"></select></label>
+          <label>Property document type<select data-field="ownershipType" class="ownership-select"></select></label>
+          <label>Province
+            <select data-field="province">
+              <option>Gauteng</option>
+              <option>Western Cape</option>
+              <option>KwaZulu-Natal</option>
+              <option>Eastern Cape</option>
+              <option>Free State</option>
+              <option>Limpopo</option>
+              <option>Mpumalanga</option>
+              <option>North West</option>
+              <option>Northern Cape</option>
+            </select>
+          </label>
+          <label>Solar installed?<select data-field="solar"><option>No</option><option>Yes</option></select></label>
+          <label>Electric fence?<select data-field="electricFence"><option>No</option><option>Yes</option></select></label>
+          <label>Gas installed?<select data-field="gas"><option>No</option><option>Yes</option></select></label>
+          <label>Bugs / beetle certificate?<select data-field="bugs"><option>Auto</option><option>No</option><option>Yes</option></select></label>
+          <label>City of Cape Town water certificate?<select data-field="water"><option>No</option><option>Yes</option></select></label>
+          <label>Include standard transfer documents?<select data-field="standardDocs"><option>Yes</option><option>No</option></select></label>
+        </div>
+      </section>
+    </aside>
+
+    <section class="preview-panel">
+      <div class="preview-toolbar no-print">
+        <div>
+          <h2>PDF Preview</h2>
+          <p>Export follows the template document and the example output structure.</p>
+        </div>
+        <button type="button" id="printPdf" class="btn ghost">Print / Save PDF</button>
+      </div>
+
+      <div id="pdfReport" class="pdf-report">
+        <section class="pdf-page cover-page">
+          <div class="title-main">COMPARATIVE MARKET ANALYSIS</div>
+          <div class="section-title cover-title">CLIENT INFORMATION:</div>
+          <div class="cover-info">
+            <div class="cover-label">OWNER:</div><div class="cover-value big" data-out="owner"></div>
+            <div class="cover-label">ADDRESS:</div><div class="cover-value fit-address" data-out="address" data-fit="address"></div>
+          </div>
+          <img class="cover-logo" src="assets/blue-lily-logo.jpg" alt="Blue Lily Properties logo" />
+          <div class="section-title prepared-title">PREPARED BY:</div>
+          <div class="agent-grid">
+            <div><b>NAME:</b><span data-out="preparedBy"></span></div>
+            <div><b>Agent FFC</b><span data-out="agentFfc"></span></div>
+            <div><b>NUMBER:</b><span data-out="agentPhone"></span></div>
+            <div><b>EMAIL:</b><span data-out="agentEmail"></span></div>
+            <div><b>WEBSITE:</b><span data-out="agentWebsite"></span></div>
+          </div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading">Property Information</h1>
+          <div class="property-layout">
+            <div class="property-fields">
+              <div>ERF SIZE:<b data-out="erfSize"></b><span>m²</span></div>
+              <div>UNDER ROOF:<b data-out="underRoof"></b><span>m²</span></div>
+              <div>PURCHASE PRICE:<b data-out="purchasePrice" data-money="true"></b></div>
+              <div>PURCHASE DATE:<b data-out="purchaseDateFormatted"></b></div>
+              <div>PROPERTY TYPE:<b data-out="propertyType"></b></div>
+            </div>
+            <div class="condition-panel">
+              <h2>CONDITION:</h2>
+              <div class="condition-option" data-condition="Fixer Upper"><span>FIXER UPPER</span><i></i></div>
+              <div class="condition-option" data-condition="TLC Required"><span>TLC REQUIRED</span><i></i></div>
+              <div class="condition-option" data-condition="Good"><span>GOOD</span><i></i></div>
+              <div class="condition-option" data-condition="Excellent"><span>EXCELLENT</span><i></i></div>
+              <div class="condition-option" data-condition="Exceptional"><span>EXCEPTIONAL</span><i></i></div>
+            </div>
+          </div>
+          <div class="features-row">
+            <div>
+              <h2>KEY FEATURES:</h2>
+              <p data-out="feature1"></p>
+              <p data-out="feature2"></p>
+              <p data-out="feature3"></p>
+            </div>
+            <div>
+              <h2>LESS IDEAL FEATURES:</h2>
+              <p data-out="less1"></p>
+              <p data-out="less2"></p>
+              <p data-out="less3"></p>
+            </div>
+          </div>
+          <div class="market-section">
+            <h2>MARKET STATISTICS:<span data-out="marketArea"></span></h2>
+            <div class="market-grid">
+              <div><label>COMPETING PROPERTIES:</label><b data-out="competing"></b></div>
+              <div><label>RECENT SALES:</label><b data-out="recentSales"></b></div>
+              <div><label>HIGHEST SALES PRICE:</label><b data-out="highestPrice" data-money="true"></b></div>
+              <div><label>LOWEST SALES PRICE:</label><b data-out="lowestPrice" data-money="true"></b></div>
+              <div><label>MEDIAN SALES PRICE:</label><b data-out="medianPrice" data-money="true"></b></div>
+              <div><label>AVERAGE PRICE PER m²</label><b data-out="avgPsm" data-money="true"></b></div>
+            </div>
+          </div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page price-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark price-watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading">PRICE TO SELL:</h1>
+          <div class="price-text">
+            <h2>WHAT IMPACTS THE PRICE OF YOUR<br />PROPERTY?</h2>
+            <p>WHAT YOU <b><u>CAN IMPROVE</u></b> AS THE SELLER:</p>
+            <ul><li>CONDITION</li><li><b>PRICE</b></li></ul>
+            <p>WHAT YOU CAN <b><u>NOT IMPROVE</u></b> AS SELLER:</p>
+            <ul><li>LOCATION</li></ul>
+          </div>
+          <div class="price-table">
+            <div class="pill label">15% BELOW</div><div class="pill value" data-price="below15"></div>
+            <div class="pill label">10% BELOW</div><div class="pill value" data-price="below10"></div>
+            <div class="pill label selected">MARKET VALUE</div><div class="pill value selected" data-price="market"></div>
+            <div class="pill label">10% ABOVE</div><div class="pill value" data-price="above10"></div>
+            <div class="pill label">15% ABOVE</div><div class="pill value" data-price="above15"></div>
+          </div>
+          <div class="recommendation-box" data-out="recommendationFinal"></div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page text-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading wide">WHY SELL AT MARKET<br />VALUE?</h1>
+          <div class="body-copy market-copy">
+            <p><b>Faster Sale:</b><br />Homes priced correctly from the start tend to sell quicker, reducing the time your property sits on the market and the risk of it becoming "stale."</p>
+            <p><b>Attracts More Buyers:</b><br />A well-priced home draws more attention from serious buyers and increases the chances of receiving multiple offers.</p>
+            <p><b>Maximizes Sale Price:</b><br />Setting the right price can create urgency and competition, which can sometimes drive the final sale price above asking.</p>
+            <p><b>Avoids Price Reductions:</b><br />Overpricing often leads to necessary price cuts, which can signal to buyers that there is something wrong with the home or make them wait for further reductions.</p>
+            <p><b>Appraisal Success:</b><br />A correctly priced home is more likely to appraise at value, avoiding financing issues or deal fall-throughs due to a low appraisal.</p>
+            <p><b>THE RISKS</b><br />• Under-pricing may achieve more views, however it may not lead to a sale.<br />• The risk of over and under-pricing can delay the transaction.<br />• Overpricing poses the risk that the banks not approving bonds due to value.<br />• Under-pricing poses the risk that you sell for less that you need to sell.</p>
+          </div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page photo-page active-photo-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark photo-watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading wide">THE COMPETITION -</h1>
+          <div class="sub-heading">ON THE MARKET</div>
+          <div class="photo-collage active-collage" id="activeCollage"></div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page photo-page offer-photo-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark photo-watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading wide">THE COMPETITION -</h1>
+          <div class="sub-heading">UNDER OFFER</div>
+          <div class="photo-collage offer-collage" id="offerCollage"></div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page text-page mandate-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading wide">WHY AN EXCLUSIVE<br />MANDATE?</h1>
+          <div class="body-copy compact-copy">
+            <p><b>1. One Accountable Strategy</b><br />A focused mandate gives you one clear strategy, one price plan, one reporting rhythm and one agent responsible for the result.</p>
+            <p><b>2. Market Diagnosis</b><br />Your agent shows you what is really happening in your micro-market, using active competition, recent sales, buyer demand and market feedback.</p>
+            <p><b>3. Clear Pricing Corridor</b><br />An exclusive mandate allows your agent to guide you between optimistic price, market price and urgency price, helping you make informed pricing decisions.</p>
+            <p><b>4. Professional Launch Plan</b><br />Your property is not simply listed; it is launched with preparation, photography, copy, portals, database marketing, social media and buyer targeting.</p>
+            <p><b>5. Better Buyer Strategy</b><br />Your agent identifies the most likely buyer for your property and creates a focused plan to reach them.</p>
+            <p><b>6. Weekly Reporting and Review Points</b><br />You receive clear weekly feedback, buyer response, market interpretation and recommendations so you always know what is happening.</p>
+            <p><b>7. Risk Management and Control</b><br />A focused mandate helps prevent duplicate buyers, mixed messages, pricing confusion, security risks and weak negotiation.</p>
+            <p><b>8. Stronger Commitment from Your Agent</b><br />Because the agent has a defined mandate, they can invest properly in marketing, follow-up, reporting and negotiation.</p>
+            <p><b>9. Proof and Professionalism</b><br />Your agent can support the mandate with testimonials, previous results, marketing quality, local knowledge and a clear execution plan.</p>
+            <p><b>10. Better Seller Outcome</b><br />The goal is not just exposure. The goal is a controlled, professional process that protects your price, creates buyer confidence and gives you the best chance of selling successfully.</p>
+          </div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page text-page seller-info-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading">SELLER INFO:</h1>
+          <div class="body-copy tiny-copy">
+            <p><b>COSTS FOR THE SELLER</b><br />• Property practitioner's commission<br />• Outstanding balance on existing mortgage bond<br />• Bond cancellation costs<br />• Clearance certificates (city council / HOA / body corporate)<br />• Compliance certificates (electrical, gas, electrical fence)<br />• Certified copy of lost original title deed<br />• FICA<br />• Financial undertakings on behalf of the seller<br />• Plans (building / sectional title) (if applicable)<br />• Any repairs as per offer to purchase</p>
+            <p><b>THE MANDATORY DISCLOSURE FORM</b><br />A seller's disclosure is mandatory if you are selling your property through a property practitioner. The seller is encouraged to disclose all the patent (known) and latent (unknown) defects which exist in the property to any prospective purchaser. This is achieved by completing a document known as the Immovable Property Condition Report which sets out various statements regarding the condition of the property.</p>
+            <p><b>FICA DOCUMENTS</b><br />The Financial Intelligence Centre Act (FICA) places stringent obligations on all attorneys and property practitioners to verify certain information and keep records thereof. To ensure compliance with their statutory obligations, both your conveyancing attorney and property practitioner will request certain documents from you.</p>
+            <p><b>COMPLIANCE CERTIFICATES</b><br />A legal obligation to provide various compliance certificates exists when a property is being transferred. These certificates must be obtained by the seller at his own cost, from a reputable and registered service provider.</p>
+            <p><b>These include:</b><br />• Electrical compliance certificate (includes solar installation)<br />• Gas conformity certificate (if applicable)<br />• Electrical fence certificate (if applicable)</p>
+            <p><b>RATES & LEVY CERTIFICATES</b><br />The conveyancing attorney is obliged to lodge a rates clearance certificate which must be valid until at least date of registration of the transfer.</p>
+            <p>The conveyancing attorney will obtain rates clearance figures from the municipality which include an estimated forward projection for a period of 4 months in respect of rates and utilities as well as any arrear amounts.</p>
+            <p><b>SUSPENSIVE CONDITIONS</b><br />Sale agreements usually contains one or more suspensive conditions. The sale agreement will not be enforceable and binding if these suspensive conditions are not fulfilled completely and timeously.</p>
+            <p>Any deviation from the terms of a suspensive condition must be addressed in an addendum before its due date.</p>
+          </div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page fica-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading wide fica-heading">SELLER FICA AND<br />COMPLIANCE CERTIFICATES</h1>
+          <div id="ficaOutput" class="fica-output" data-fit="fica"></div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+
+        <section class="pdf-page commitment-page">
+          <img class="corner-logo" src="assets/blue-lily-logo.jpg" alt="" />
+          <img class="watermark commitment-watermark" src="assets/blue-lily-logo.jpg" alt="" />
+          <h1 class="page-heading wide">OUR COMMITMENT TO<br />YOU</h1>
+          <div class="commitment-copy">
+            <p>Every client has a dream, a goal and a<br />next chapter.</p>
+            <p>Our commitment is to guide you with<br />honesty, clarity and care, protect your<br />value, and work with purpose until the<br />right result is achieved.</p>
+            <p class="commitment-line">Let’s do it the right way.</p>
+            <p class="commitment-line">The Blue Lily way.</p>
+          </div>
+          <footer class="footer">Reg No: 2021/788520&nbsp;&nbsp; PPRA: F150346<br />E.Potgieter l R. Van Aardt</footer>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
