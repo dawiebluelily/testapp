@@ -77,3 +77,36 @@ input[readonly]{background:#eef6ff;color:var(--deep);font-weight:900;cursor:not-
 .cover-info{grid-template-columns:185px 1fr;width:625px;row-gap:10px;}
 .cover-info .fit-address{width:430px;height:82px;overflow:hidden;line-height:1.03;white-space:normal;word-break:normal;overflow-wrap:anywhere;color:var(--ink);}
 .cover-info .cover-value{min-width:0;}
+
+/* v12: cover address must always sit above the logo and fit longer imported addresses */
+.cover-page .cover-info{
+  z-index:6;
+  grid-template-columns:185px 1fr;
+  width:650px;
+  row-gap:8px;
+}
+.cover-page .cover-title,
+.cover-page .title-main{
+  z-index:6;
+}
+.cover-page .cover-logo{
+  z-index:1;
+  top:270px;
+}
+.cover-page .cover-value{
+  color:var(--ink);
+  min-width:0;
+}
+.cover-page .fit-address{
+  width:470px;
+  min-height:96px;
+  height:96px;
+  overflow:hidden;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  line-height:.98;
+  position:relative;
+  z-index:7;
+  background:transparent;
+}

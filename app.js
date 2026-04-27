@@ -1372,10 +1372,10 @@ function lockWebsite(){
 }
 
 function applyDynamicFitting(){
-  fitElement(document.querySelector('[data-fit="address"]'), 28, 7.5, {
-    lineHeight: 1.03,
-    minLineHeight: 0.92,
-    step: 0.25
+  fitElement(document.querySelector('[data-fit="address"]'), 27, 6.2, {
+    lineHeight: 0.98,
+    minLineHeight: 0.82,
+    step: 0.2
   });
   fitElement(document.querySelector('[data-fit="fica"]'), 13.2, 6.8, {
     lineHeight: 1.17,
