@@ -132,3 +132,9 @@ Notes:
 ## v16 owner import fix
 - LOOM owner import now strips ID numbers and marital/status wording before populating the owner field.
 - Example: `BARNARD CHRISTINA HELENA 6004060089089 MARRIED OUT` becomes `BARNARD CHRISTINA HELENA`.
+
+
+## v17 LOOM sectional size import
+- LOOM `Deeds Extent` now imports into `Under Roof` as floor size.
+- For LOOM sectional-title imports, `Surveyor General Extent` is not used as Erf Size because it is normally the scheme / parent extent.
+- If no real land size is provided, Erf Size stays blank.

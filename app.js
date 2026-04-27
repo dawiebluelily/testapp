@@ -678,6 +678,10 @@ function applySectionalSizeRules(data){
     }else if(land < floor){
       data.erfSize = String(floor);
       data.underRoof = String(land);
+    }else if(land > floor * 5){
+      // Avoid using complex / scheme extent as seller land size on sectional-title imports.
+      data.erfSize = "";
+      data.underRoof = String(floor);
     }
   }else if(land && !floor){
     data.underRoof = String(land);
@@ -717,9 +721,19 @@ function parseLoomReport(text){
   const deedsExtent = valueAfterLabel(lines, "Deeds Extent");
   const sgExtent = valueAfterLabel(lines, "Surveyor General Extent");
   const erfNumber = valueAfterLabel(lines, "Erf Number");
-  if(sgExtent) data.erfSize = integerFromText(sgExtent);
-  else if(erfNumber) data.erfSize = integerFromText(erfNumber);
+  const isSectionalLoom = normalizePropertyType(data.propertyType || "") === "SECTIONAL";
+
+  // LOOM reports show "Deeds Extent" as the unit / floor size for sectional properties.
+  // "Surveyor General Extent" is often the scheme / parent erf extent, not the seller's land size.
+  // Therefore: for LOOM sectional title imports, use Deeds Extent for Under Roof and keep Erf Size blank.
   if(deedsExtent) data.underRoof = integerFromText(deedsExtent);
+  if(isSectionalLoom){
+    data.erfSize = "";
+  }else if(sgExtent){
+    data.erfSize = integerFromText(sgExtent);
+  }else if(erfNumber){
+    data.erfSize = integerFromText(erfNumber);
+  }
 
   const deedsTown = valueAfterLabel(lines, "Deeds Town");
   if(deedsTown) data.marketArea = titleCase(deedsTown);
