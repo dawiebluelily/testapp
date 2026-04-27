@@ -1,4 +1,5 @@
 const STORAGE_KEY = "blue-lily-cma-builder-v9";
+const AUTO_SAVE_ENABLED = false;
 const AGENT_SHEET_ID = "1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY";
 const AGENT_SHEET_NAME = "Sheet1";
 const AGENT_REFRESH_MS = 5 * 60 * 1000;
@@ -1458,17 +1459,17 @@ function renderFica(){
 }
 
 function saveState(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // Disabled so each new app load starts clean.
+  if(AUTO_SAVE_ENABLED){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
 }
 
 function loadState(){
-  try{
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if(stored && typeof stored === "object") state = { ...defaultData, ...stored, agentWebsite: AGENT_WEBSITE, propertyType: normalizePropertyType(stored.propertyType) };
-    ensureRows();
-  }catch(error){
-    state = makeCleanState();
-  }
+  // Always start clean. Do not restore previous owners, reports, photos or form inputs.
+  localStorage.removeItem(STORAGE_KEY);
+  state = makeCleanState();
+  ensureRows();
 }
 
 function downloadBackup(){
@@ -1598,6 +1599,17 @@ function safeName(value){
   return String(value).trim().replace(/[^a-z0-9]+/gi, "-").replace(/^-+|-+$/g, "") || "Blue-Lily-CMA";
 }
 
+
+function resetFileInputs(){
+  document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.value = "";
+  });
+  const reportStatus = document.getElementById("propertyReportStatus");
+  if(reportStatus){
+    reportStatus.textContent = "No property report imported. Manual entry is still fully available.";
+  }
+}
+
 function escapeHtml(value){
   return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char]));
 }
@@ -1605,6 +1617,7 @@ function escapeHtml(value){
 populateSelects();
 bindInputs();
 loadState();
+resetFileInputs();
 syncForm();
 render();
 loadAgentsFromSheet();

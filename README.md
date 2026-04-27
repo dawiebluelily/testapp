@@ -114,3 +114,16 @@ Notes:
 - Header now shows the Blue Lily logo next to the app name.
 - Favicon, Apple touch icon, and Android app icons are included.
 - `manifest.json` is included so installed/PWA shortcuts use the Blue Lily icon across supported devices.
+
+
+## Clean-start update
+- The app no longer restores previous form data, imported reports or uploaded images on reload.
+- Every new page load starts blank and clean.
+- The agent list still refreshes from the Google Sheet backend.
+- To keep work intentionally, use Download backup and Import backup.
+
+
+## v15 update
+- LOOM owner import now keeps only the owner name text.
+- ID numbers, marital status, spouse/status wording and ownership percentages are removed before the owner field is populated.
+- The app still starts clean on every fresh load.
