@@ -127,3 +127,8 @@ Notes:
 - LOOM owner import now keeps only the owner name text.
 - ID numbers, marital status, spouse/status wording and ownership percentages are removed before the owner field is populated.
 - The app still starts clean on every fresh load.
+
+
+## v16 owner import fix
+- LOOM owner import now strips ID numbers and marital/status wording before populating the owner field.
+- Example: `BARNARD CHRISTINA HELENA 6004060089089 MARRIED OUT` becomes `BARNARD CHRISTINA HELENA`.

@@ -706,7 +706,7 @@ function parseLoomReport(text){
   if(addressLines.length) data.address = addressLines.join(", ");
 
   const ownerLines = collectLinesBetween(lines, "Current Owner", ["100%", "Bond Information"]);
-  if(ownerLines.length) data.owner = ownerLines.filter(line => line !== "-").join(" ");
+  if(ownerLines.length) data.owner = cleanLoomOwnerName(ownerLines);
 
   const propType = valueAfterLabel(lines, "Property Type");
   if(propType){
@@ -746,6 +746,34 @@ function parseLoomReport(text){
   applySectionalSizeRules(data);
   const normalizedSoldRows = clearSectionalPlotSizes(soldRows, data.propertyType);
   return { type: "LOOM CMA report", data, soldRows: normalizedSoldRows };
+}
+
+
+function cleanLoomOwnerName(ownerLines){
+  const raw = (Array.isArray(ownerLines) ? ownerLines : [ownerLines])
+    .filter(Boolean)
+    .map(line => String(line).trim())
+    .filter(line => line && line !== "-" && !/^\d+%$/.test(line))
+    .join(" ");
+
+  if(!raw) return "";
+
+  let clean = raw
+    .replace(/\b\d{13}\b/g, " ")
+    .replace(/\bID\s*(NO|NUMBER|NR)?\.?\s*[:#-]?\s*\d[\d\s-]{5,}\b/gi, " ")
+    .replace(/\b\d{6,}\b/g, " ")
+    .replace(/\b\d+%\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const maritalOrStatus = /\b(MARRIED\s+(IN|OUT)(\s+OF)?(\s+COMMUNITY)?(\s+OF)?(\s+PROPERTY)?|MARRIED\s+OUT|MARRIED\s+IN|MARRIED|UNMARRIED|SINGLE|DIVORCED|WIDOWED|WIDOW|ESTATE\s+LATE|LATE\s+ESTATE|SPOUSE|SURVIVING\s+SPOUSE)\b/i;
+  const statusMatch = clean.match(maritalOrStatus);
+  if(statusMatch) clean = clean.slice(0, statusMatch.index).trim();
+
+  return clean
+    .replace(/[,;:\-]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function parseTvaReport(text){
