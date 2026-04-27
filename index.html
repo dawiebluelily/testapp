@@ -14,6 +14,8 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script defer src="app.js"></script>
@@ -32,7 +34,7 @@
       <button type="button" id="loadSample" class="btn ghost">Load output example</button>
       <button type="button" id="clearData" class="btn ghost">Clear</button>
       <button type="button" id="saveJson" class="btn ghost">Download backup</button>
-      <label class="btn ghost upload-label">Import backup<input id="importJson" type="file" accept="application/json" hidden /></label>
+      <label class="btn ghost upload-label">Import backup<input id="importJson" type="file" accept=".json,application/json" hidden /></label>
       <button type="button" id="exportPdf" class="btn primary">Export PDF</button>
     </div>
   </header>
@@ -42,7 +44,8 @@
       <section class="form-card open report-import-card">
         <h2>0. Optional Property Report / CMA Import</h2>
         <p class="small-note">Upload a LOOM CMA or TVA Property Report PDF to pre-populate the CMA. This is optional - leave it blank to complete everything manually. After importing, every field remains editable.</p>
-        <label class="full file-line">Upload property report / CMA PDF<input id="propertyReportPdf" type="file" accept="application/pdf" /></label>
+        <p class="small-note mobile-upload-note"><b>Mobile upload options:</b> On iPhone, iPad and Android, tap Choose File / Browse and select from Files, iCloud Drive, Google Drive or OneDrive. Google Drive and OneDrive appear when those apps are installed and enabled in the phone Files app.</p>
+        <label class="full file-line mobile-file-line">Choose PDF from Files / iCloud / Drive / OneDrive<input id="propertyReportPdf" type="file" accept=".pdf,application/pdf" /></label>
         <div id="propertyReportStatus" class="backend-status full">No property report imported. Manual entry is still fully available.</div>
       </section>
 
@@ -147,10 +150,10 @@
 
       <section class="form-card">
         <h2>4. Competition Images</h2>
-        <p class="small-note">Upload screenshots or photos. They stay in the browser only.</p>
-        <label class="full file-line">On the market images<input id="activeImages" type="file" accept="image/*" multiple /></label>
+        <p class="small-note">Upload screenshots or photos. They stay in the browser only. On mobile, the picker will allow Photos, Files, iCloud Drive, Google Drive or OneDrive where available.</p>
+        <label class="full file-line mobile-file-line">On the market images - Photos / Files / Drive<input id="activeImages" type="file" accept="image/*,.jpg,.jpeg,.png,.webp" multiple /></label>
         <div id="activeList" class="image-list"></div>
-        <label class="full file-line">Under offer screenshots<input id="offerImages" type="file" accept="image/*" multiple /></label>
+        <label class="full file-line mobile-file-line">Under offer screenshots - Photos / Files / Drive<input id="offerImages" type="file" accept="image/*,.jpg,.jpeg,.png,.webp" multiple /></label>
         <div id="offerList" class="image-list"></div>
       </section>
 
@@ -189,7 +192,7 @@
           <h2>PDF Preview</h2>
           <p>Export follows the template document and the example output structure.</p>
         </div>
-        <button type="button" id="printPdf" class="btn ghost">Print / Save PDF</button>
+        <div class="preview-actions"><div id="exportStatus" class="backend-status export-status">Export is set to mobile-safe one-page-per-sheet PDF output.</div><button type="button" id="printPdf" class="btn ghost">Print / Save PDF</button></div>
       </div>
 
       <div id="pdfReport" class="pdf-report">

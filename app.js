@@ -1,4 +1,4 @@
-const STORAGE_KEY = "blue-lily-cma-builder-v18";
+const STORAGE_KEY = "blue-lily-cma-builder-v22";
 const AUTO_SAVE_ENABLED = false;
 const AGENT_SHEET_ID = "1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY";
 const AGENT_SHEET_NAME = "Sheet1";
@@ -8,6 +8,7 @@ const PDFJS_WORKER_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174
 
 const PROPERTY_TYPES = [
   "SECTIONAL",
+  "FREEHOLD",
   "RESIDENTIAL",
   "COMMERCIAL",
   "AGRICULTURAL",
@@ -716,6 +717,63 @@ function clearSectionalPlotSizes(rows, propertyType){
   return (rows || []).map(row => ({ ...row, plotSize: "" }));
 }
 
+function extractLoomAddress(lines){
+  const start = findLineIndex(lines, "Address");
+  if(start < 0) return "";
+
+  const stopLabels = [
+    "details", "property description", "property type", "property key", "erf number",
+    "unit number", "portion number", "lat long", "deeds extent", "surveyor general extent",
+    "mapcode", "municipal valuation", "valuation date", "powered by", "deeds overview",
+    "ownership", "bond information", "transfer history"
+  ];
+
+  const parts = [];
+  const firstLine = lines[start] || "";
+  const sameLine = firstLine.replace(/^\s*Address\s*[:\-]?\s*/i, "").trim();
+  if(sameLine && normalizeReportLabel(sameLine) !== "address") parts.push(sameLine);
+
+  for(let i = start + 1; i < Math.min(lines.length, start + 12); i += 1){
+    const line = String(lines[i] || "").trim();
+    if(!line || /^[-–]+$/.test(line)) continue;
+
+    const norm = normalizeReportLabel(line);
+    if(stopLabels.some(stop => norm === stop || norm.startsWith(stop + " ") || norm.includes(" " + stop + " "))) break;
+    if(isKnownReportLabel(line)) break;
+    if(/^(Property Details|Property Overview|Comparative Market Analysis|LOOM)$/i.test(line)) continue;
+    if(/^-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(line.replace(/\s+/g, ""))) continue;
+
+    parts.push(line);
+  }
+
+  return uniqueAddressParts(parts).join(", ");
+}
+
+function uniqueAddressParts(parts){
+  const seen = new Set();
+  return (parts || [])
+    .map(part => String(part || "").replace(/\s+/g, " ").replace(/^[,\s]+|[,\s]+$/g, "").trim())
+    .filter(part => part && part !== "-")
+    .filter(part => {
+      const key = normalizeReportLabel(part);
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function isTvaSectionalReport(titleLine, street){
+  const title = String(titleLine || "").trim();
+  const streetValue = String(street || "").trim();
+  if(/^unit\s*\d+[\s,]/i.test(title) || /^unit\s*\d+$/i.test(title)) return true;
+  if(/unit\s*\d+/i.test(title) && !sameAddressPart(title, streetValue)) return true;
+  return false;
+}
+
+function sameAddressPart(a, b){
+  return normalizeReportLabel(a) === normalizeReportLabel(b);
+}
+
 function parseLoomReport(text){
   const lines = reportLines(text);
   const data = {};
@@ -724,8 +782,8 @@ function parseLoomReport(text){
   const preparedBy = lineAfter(lines, "Comparative Market Analysis for:");
   if(preparedBy) data.preparedBy = preparedBy;
 
-  const addressLines = collectLinesBetween(lines, "Address", ["Details"]);
-  if(addressLines.length) data.address = addressLines.join(", ");
+  const loomAddress = extractLoomAddress(lines);
+  if(loomAddress) data.address = loomAddress;
 
   const ownerLines = collectLinesBetween(lines, "Current Owner", ["100%", "Bond Information"]);
   if(ownerLines.length) data.owner = cleanLoomOwnerName(ownerLines);
@@ -738,19 +796,22 @@ function parseLoomReport(text){
 
   const deedsExtent = valueAfterLabel(lines, "Deeds Extent");
   const sgExtent = valueAfterLabel(lines, "Surveyor General Extent");
-  const erfNumber = valueAfterLabel(lines, "Erf Number");
   const isSectionalLoom = normalizePropertyType(data.propertyType || "") === "SECTIONAL";
 
-  // LOOM reports show "Deeds Extent" as the unit / floor size for sectional properties.
-  // "Surveyor General Extent" is often the scheme / parent erf extent, not the seller's land size.
-  // Therefore: for LOOM sectional title imports, use Deeds Extent for Under Roof and keep Erf Size blank.
-  if(deedsExtent) data.underRoof = integerFromText(deedsExtent);
+  // LOOM size rule:
+  // Sectional Title: Deeds Extent = unit/floor size, so it goes to Under Roof and Erf Size stays blank.
+  // Freehold / full title / vacant land: the single extent shown by LOOM is land/erf size, not floor size.
   if(isSectionalLoom){
+    if(deedsExtent) data.underRoof = integerFromText(deedsExtent);
     data.erfSize = "";
-  }else if(sgExtent){
-    data.erfSize = integerFromText(sgExtent);
-  }else if(erfNumber){
-    data.erfSize = integerFromText(erfNumber);
+  }else{
+    const landSize = integerFromText(deedsExtent) || integerFromText(sgExtent);
+    if(landSize){
+      data.erfSize = landSize;
+      data.underRoof = "";
+      if(!data.propertyType || normalizePropertyType(data.propertyType) === "RESIDENTIAL") data.propertyType = "FREEHOLD";
+      if(!data.ownershipType || data.ownershipType === "Full Title") data.ownershipType = "Full Title";
+    }
   }
 
   const deedsTown = valueAfterLabel(lines, "Deeds Town");
@@ -827,14 +888,28 @@ function parseTvaReport(text){
   const province = valueAfterLabel(lines, "Province");
   if(province) data.province = titleCase(province);
 
-  const addressParts = [titleCase(titleLine), titleCase(street), titleCase(suburb || town)].filter(Boolean);
-  if(addressParts.length) data.address = addressParts.join(", ");
+  const titlePart = titleCase(titleLine);
+  const streetPart = titleCase(street);
+  const suburbPart = titleCase(suburb || town);
+  const isTvaSectional = isTvaSectionalReport(titleLine, street);
+
+  // TVA address rule:
+  // Sectional/unit reports use the unit/complex line plus street plus suburb.
+  // Full-title/freehold reports often repeat the street in the title and the Street field,
+  // so we use the Street field once only, then suburb/town.
+  const importedAddress = buildTvaAddress(titlePart, streetPart, suburbPart, isTvaSectional);
+  if(importedAddress) data.address = importedAddress;
 
   const standSize = valueAfterLabel(lines, "Stand Size");
   if(standSize){
     const size = integerFromText(standSize);
-    data.underRoof = size;
-    data.erfSize = "";
+    if(isTvaSectional){
+      data.underRoof = size;
+      data.erfSize = "";
+    }else{
+      data.erfSize = size;
+      data.underRoof = "";
+    }
   }
 
   const purchaseAmount = valueAfterLabel(lines, "Purchase Amount");
@@ -843,8 +918,8 @@ function parseTvaReport(text){
   const datePurchased = valueAfterLabel(lines, "Date Purchased");
   if(datePurchased) data.purchaseDate = dateToIso(datePurchased);
 
-  data.propertyType = "SECTIONAL";
-  data.ownershipType = "Sectional Title";
+  data.propertyType = isTvaSectional ? "SECTIONAL" : "FREEHOLD";
+  data.ownershipType = isTvaSectional ? "Sectional Title" : "Full Title";
   data.marketArea = titleCase(suburb || town || "");
 
   const valuation = findAutomatedValuation(lines);
@@ -1020,6 +1095,7 @@ function applyImportedReport(parsed){
 
   lockWebsite();
   state.propertyType = normalizePropertyType(state.propertyType);
+  state.address = sanitizeAddressForOutput(state.address);
   applySectionalSizeRules(state);
   if(state.propertyType === "SECTIONAL"){
     state.soldRows = clearSectionalPlotSizes(state.soldRows, state.propertyType);
@@ -1167,6 +1243,7 @@ function dateToIso(value){
 function ownershipFromPropertyType(value){
   const clean = normalizePropertyType(value);
   if(clean === "SECTIONAL") return "Sectional Title";
+  if(clean === "FREEHOLD") return "Full Title";
   if(clean === "VACANT LAND") return "Vacant Land";
   if(clean === "AGRICULTURAL") return "Farm / Agricultural Holding";
   return "Full Title";
@@ -1585,23 +1662,231 @@ async function exportPdf(){
   syncStateFromForm();
   render();
   applyDynamicFitting();
-  await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  await nextPaint();
   applyDynamicFitting();
 
   const report = document.getElementById("pdfReport");
-  if(typeof html2pdf === "undefined"){
+  const pages = report ? [...report.querySelectorAll(".pdf-page")] : [];
+  if(!report || !pages.length){
     window.print();
     return;
   }
+
+  const html2canvasFn = getHtml2Canvas();
+  const JsPDF = getJsPDF();
+  if(!html2canvasFn || !JsPDF){
+    window.print();
+    return;
+  }
+
   const fileName = `${safeName(state.owner || "Blue-Lily-CMA")}.pdf`;
-  html2pdf().set({
-    margin: 0,
-    filename: fileName,
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollX: 0, scrollY: 0 },
-    jsPDF: { unit: "px", format: [768, 1024], orientation: "portrait", compress: true },
-    pagebreak: { mode: ["css", "legacy"], after: ".pdf-page" }
-  }).from(report).save();
+  const exportButton = document.getElementById("exportPdf");
+  const exportStatus = document.getElementById("exportStatus");
+  const originalButtonText = exportButton ? exportButton.textContent : "";
+  const exportStage = createPdfExportStage();
+
+  try{
+    if(exportButton){
+      exportButton.disabled = true;
+      exportButton.textContent = "Preparing PDF...";
+    }
+    if(exportStatus) exportStatus.textContent = "Preparing mobile-safe PDF export...";
+
+    document.body.appendChild(exportStage);
+    await nextPaint();
+
+    const pdf = new JsPDF({
+      unit: "px",
+      format: [768, 1024],
+      orientation: "portrait",
+      compress: true,
+      hotfixes: ["px_scaling"]
+    });
+
+    for(let index = 0; index < pages.length; index += 1){
+      if(exportButton) exportButton.textContent = `Exporting ${index + 1}/${pages.length}`;
+      if(exportStatus) exportStatus.textContent = `Exporting PDF page ${index + 1} of ${pages.length}...`;
+
+      const pageClone = pages[index].cloneNode(true);
+      preparePageForExport(pageClone);
+      exportStage.replaceChildren(pageClone);
+      await waitForImages(exportStage);
+      await nextPaint();
+
+      const canvas = await renderExportPageToCanvas(html2canvasFn, pageClone);
+
+      if(index > 0){
+        pdf.addPage([768, 1024], "portrait");
+      }
+
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(0, 0, 768, 1024, "F");
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 768, 1024, undefined, "FAST");
+
+      canvas.width = 1;
+      canvas.height = 1;
+      await nextPaint();
+    }
+
+    if(exportStatus) exportStatus.textContent = "PDF ready. It should contain one page per CMA sheet, with no black pages.";
+    pdf.save(fileName);
+  }catch(error){
+    console.error("PDF export failed:", error);
+    if(exportStatus) exportStatus.textContent = "Direct export failed. Use Print / Save PDF as the fallback.";
+    alert("The direct PDF export failed. The app will open Print / Save PDF instead.");
+    window.print();
+  }finally{
+    exportStage.remove();
+    if(exportButton){
+      exportButton.disabled = false;
+      exportButton.textContent = originalButtonText || "Export PDF";
+    }
+  }
+}
+
+function getHtml2Canvas(){
+  if(window.html2canvas) return window.html2canvas;
+  if(typeof html2canvas !== "undefined") return html2canvas;
+  return null;
+}
+
+function getJsPDF(){
+  if(window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+  if(window.jsPDF) return window.jsPDF;
+  return null;
+}
+
+function nextPaint(){
+  return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
+function createPdfExportStage(){
+  const stage = document.createElement("div");
+  stage.id = "pdfExportStage";
+  stage.setAttribute("aria-hidden", "true");
+  stage.style.cssText = [
+    "position:fixed",
+    "left:0",
+    "top:0",
+    "width:768px",
+    "height:1024px",
+    "margin:0",
+    "padding:0",
+    "background:#ffffff",
+    "z-index:2147483647",
+    "overflow:hidden",
+    "pointer-events:none"
+  ].join(";");
+  return stage;
+}
+
+function preparePageForExport(page){
+  page.style.width = "768px";
+  page.style.height = "1024px";
+  page.style.minWidth = "768px";
+  page.style.minHeight = "1024px";
+  page.style.maxWidth = "768px";
+  page.style.maxHeight = "1024px";
+  page.style.margin = "0";
+  page.style.padding = "0";
+  page.style.display = "block";
+  page.style.position = "relative";
+  page.style.overflow = "hidden";
+  page.style.transform = "none";
+  page.style.transformOrigin = "top left";
+  page.style.boxShadow = "none";
+  page.style.background = "#ffffff";
+  page.style.pageBreakAfter = "auto";
+  page.style.breakAfter = "auto";
+}
+
+async function renderExportPageToCanvas(html2canvasFn, page){
+  const attempts = getCanvasExportScales().map(scale => ({ scale }));
+  let lastError = null;
+
+  for(const attempt of attempts){
+    try{
+      const canvas = await html2canvasFn(page, {
+        backgroundColor: "#ffffff",
+        scale: attempt.scale,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        width: 768,
+        height: 1024,
+        windowWidth: 768,
+        windowHeight: 1024,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+        imageTimeout: 8000,
+        removeContainer: true
+      });
+
+      if(canvasLooksBlack(canvas)){
+        canvas.width = 1;
+        canvas.height = 1;
+        throw new Error("Canvas rendered as a black page. Retrying at a safer scale.");
+      }
+
+      return canvas;
+    }catch(error){
+      lastError = error;
+      await nextPaint();
+    }
+  }
+
+  throw lastError || new Error("Could not render PDF page.");
+}
+
+function getCanvasExportScales(){
+  const ua = navigator.userAgent || "";
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(ua) || Math.min(window.innerWidth || 0, window.innerHeight || 0) < 820;
+  return isMobile ? [1, 0.85] : [1.5, 1];
+}
+
+function canvasLooksBlack(canvas){
+  try{
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if(!context) return false;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const sampleSize = 10;
+    let blackSamples = 0;
+    let checkedSamples = 0;
+
+    for(let y = 0; y < height; y += Math.max(1, Math.floor(height / sampleSize))){
+      for(let x = 0; x < width; x += Math.max(1, Math.floor(width / sampleSize))){
+        const pixel = context.getImageData(x, y, 1, 1).data;
+        const alpha = pixel[3];
+        const brightness = pixel[0] + pixel[1] + pixel[2];
+        checkedSamples += 1;
+        if(alpha > 240 && brightness < 35) blackSamples += 1;
+      }
+    }
+
+    return checkedSamples > 0 && blackSamples / checkedSamples > 0.82;
+  }catch(error){
+    return false;
+  }
+}
+
+function waitForImages(root){
+  const images = [...root.querySelectorAll("img")];
+  if(!images.length) return Promise.resolve();
+
+  return Promise.all(images.map(img => new Promise(resolve => {
+    if(img.complete && img.naturalWidth !== 0){
+      resolve();
+      return;
+    }
+    const finish = () => resolve();
+    img.addEventListener("load", finish, { once: true });
+    img.addEventListener("error", finish, { once: true });
+    setTimeout(finish, 8000);
+  })));
 }
 
 function average(values){
@@ -1655,8 +1940,10 @@ function normalizePropertyType(value){
     "SECTIONAL": "SECTIONAL",
     "SECTIONAL TITLE": "SECTIONAL",
     "RESIDENTIAL": "RESIDENTIAL",
-    "FREEHOLD": "RESIDENTIAL",
-    "FULL TITLE": "RESIDENTIAL",
+    "FREEHOLD": "FREEHOLD",
+    "FREE HOLD": "FREEHOLD",
+    "FULL TITLE": "FREEHOLD",
+    "FULLTITLE": "FREEHOLD",
     "COMMERCIAL": "COMMERCIAL",
     "FARM": "AGRICULTURAL",
     "AGRICULTURAL": "AGRICULTURAL",
@@ -1701,3 +1988,85 @@ render();
 loadAgentsFromSheet();
 agentRefreshTimer = window.setInterval(() => loadAgentsFromSheet({ silent: true }), AGENT_REFRESH_MS);
 window.addEventListener("focus", () => loadAgentsFromSheet({ silent: true }));
+
+// v23 robust address sanitising and TVA/full-title address build
+function addressKey(value){
+  return normalizeReportLabel(value)
+    .replace(/\bstreet\b/g, "st")
+    .replace(/\broad\b/g, "rd")
+    .replace(/\bavenue\b/g, "ave")
+    .replace(/\bdrive\b/g, "dr")
+    .replace(/\blane\b/g, "ln")
+    .replace(/\bplace\b/g, "pl");
+}
+
+function cleanAddressPart(part){
+  let value = String(part || "")
+    .replace(/\s+/g, " ")
+    .replace(/^[,\s]+|[,\s]+$/g, "")
+    .trim();
+  if(!value) return "";
+
+  const words = value.split(/\s+/);
+  for(let len = Math.floor(words.length / 2); len >= 2; len -= 1){
+    const first = words.slice(0, len).join(" ");
+    const second = words.slice(len, len * 2).join(" ");
+    if(addressKey(first) && addressKey(first) === addressKey(second)){
+      value = [first, ...words.slice(len * 2)].join(" ").trim();
+      break;
+    }
+  }
+  return value;
+}
+
+function uniqueAddressParts(parts){
+  const seen = new Set();
+  return (parts || [])
+    .map(part => cleanAddressPart(part))
+    .filter(part => part && part !== "-")
+    .filter(part => {
+      const key = addressKey(part);
+      if(seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+function sanitizeAddressForOutput(value){
+  const rawParts = String(value || "")
+    .replace(/\n+/g, ", ")
+    .split(",")
+    .map(part => cleanAddressPart(part))
+    .filter(Boolean);
+
+  const cleaned = [];
+  rawParts.forEach(part => {
+    let current = cleanAddressPart(part);
+    if(!current) return;
+
+    const previous = cleaned[cleaned.length - 1];
+    if(previous){
+      const prevKey = addressKey(previous);
+      const currentKey = addressKey(current);
+      if(currentKey === prevKey) return;
+      if(prevKey && currentKey.startsWith(prevKey + " ")){
+        const possibleRemainder = current.slice(previous.length).replace(/^[,\s-]+/, "").trim();
+        current = cleanAddressPart(possibleRemainder);
+        if(!current) return;
+      }
+    }
+
+    if(cleaned.some(existing => addressKey(existing) === addressKey(current))) return;
+    cleaned.push(current);
+  });
+
+  return cleaned.join(", ");
+}
+
+function buildTvaAddress(titlePart, streetPart, suburbPart, isSectional){
+  const title = cleanAddressPart(titlePart);
+  const street = cleanAddressPart(streetPart);
+  const suburb = cleanAddressPart(suburbPart);
+  const parts = isSectional ? [title, street, suburb] : [street || title, suburb];
+  return sanitizeAddressForOutput(uniqueAddressParts(parts).join(", "));
+}

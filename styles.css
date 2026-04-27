@@ -115,3 +115,63 @@ input[readonly]{background:#eef6ff;color:var(--deep);font-weight:900;cursor:not-
 }
 
 @media(max-width:850px){.brand-wrap{width:100%}.brand-logo{width:56px;height:56px}}
+
+/* v23: prevent upload controls from bleeding into the PDF preview/export */
+.pdf-report input[type="file"],
+.pdf-page input[type="file"],
+.preview-panel input[type="file"]{
+  display:none!important;
+  visibility:hidden!important;
+}
+
+/* v24: mobile upload guidance and safer export status layout */
+.mobile-upload-note{
+  background:#edf7ff;
+  border:1px solid #c9e6fb;
+  border-radius:12px;
+  padding:10px 12px;
+  color:var(--ink);
+}
+.mobile-upload-note b{color:var(--blue)}
+.mobile-file-line{
+  background:#f7fbff;
+  border:1px dashed #9cc9ef;
+  border-radius:14px;
+  padding:12px;
+  color:var(--blue);
+}
+.mobile-file-line input{
+  width:100%;
+  margin-top:8px;
+  background:#fff;
+}
+.preview-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.export-status{
+  max-width:330px;
+  text-align:right;
+  line-height:1.25;
+}
+#pdfExportStage,
+#pdfExportStage *{
+  box-sizing:border-box;
+}
+#pdfExportStage .pdf-page{
+  box-shadow:none!important;
+  margin:0!important;
+  page-break-after:auto!important;
+  break-after:auto!important;
+}
+@media(max-width:850px){
+  .topbar{position:relative;align-items:flex-start;flex-direction:column}
+  .topbar-actions{width:100%;justify-content:flex-start}
+  .preview-toolbar{align-items:flex-start;flex-direction:column;gap:12px}
+  .preview-actions{justify-content:flex-start;width:100%}
+  .export-status{text-align:left;max-width:100%}
+  .mobile-file-line input{font-size:16px}
+}
