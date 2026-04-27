@@ -4,6 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Blue Lily CMA App</title>
+  <meta name="theme-color" content="#0057ad" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Blue Lily CMA" />
+  <meta name="application-name" content="Blue Lily CMA" />
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -11,10 +20,13 @@
 </head>
 <body>
   <header class="topbar no-print">
-    <div>
-      <div class="eyebrow">Blue Lily Properties</div>
-      <h1>CMA PDF Builder</h1>
-      <p>Fill out the fields, add optional screenshots/photos, then export the 10-page CMA PDF.</p>
+    <div class="brand-wrap">
+      <img class="brand-logo" src="assets/blue-lily-logo.jpg" alt="Blue Lily Properties logo" />
+      <div>
+        <div class="eyebrow">Blue Lily Properties</div>
+        <h1>Blue Lily CMA PDF Builder</h1>
+        <p>Fill out the fields, add optional screenshots/photos, then export the 10-page CMA PDF.</p>
+      </div>
     </div>
     <div class="topbar-actions">
       <button type="button" id="loadSample" class="btn ghost">Load output example</button>

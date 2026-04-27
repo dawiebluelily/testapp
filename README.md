@@ -108,3 +108,9 @@ Notes:
 ## v10 update
 - Strengthened the cover-page address auto-fit for imported LOOM and TVA reports.
 - Address text now shrinks further and line-height tightens before export/print, so long imported addresses fit inside the allocated cover-page area.
+
+
+## Branding update
+- Header now shows the Blue Lily logo next to the app name.
+- Favicon, Apple touch icon, and Android app icons are included.
+- `manifest.json` is included so installed/PWA shortcuts use the Blue Lily icon across supported devices.
