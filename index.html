@@ -1,159 +1,1383 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en-ZA">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Blue Lily Complex Report V2</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#020713" />
+  <meta name="description" content="Blue Lily Properties Agent Hub" />
+
+  <title>Blue Lily Agent Hub</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/blue-lily-logo.png" />
+
+  <style>
+    :root {
+      --black: #02040a;
+      --navy-980: #020713;
+      --navy-950: #041022;
+      --navy-900: #07172e;
+      --navy-850: #0a1d3b;
+      --blue-900: #082a73;
+      --blue-700: #005ce6;
+      --blue-500: #008cff;
+      --blue-300: #29c4ff;
+      --ice: #f7fbff;
+      --muted: #9aaeca;
+      --soft: #dce9ff;
+      --line: rgba(41, 196, 255, 0.28);
+      --line-soft: rgba(255, 255, 255, 0.11);
+      --glass: rgba(4, 14, 31, 0.68);
+      --glass-2: rgba(6, 19, 42, 0.84);
+      --shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 15px;
+      --serif: Georgia, "Times New Roman", Times, serif;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      min-height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--ice);
+      background:
+        radial-gradient(circle at 15% 8%, rgba(0, 140, 255, 0.28), transparent 30rem),
+        radial-gradient(circle at 88% 18%, rgba(41, 196, 255, 0.18), transparent 28rem),
+        linear-gradient(135deg, var(--black), var(--navy-950) 46%, #010208);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    body::before {
+      background:
+        linear-gradient(110deg, transparent 0 48%, rgba(0, 140, 255, 0.20) 48.1%, transparent 48.55% 100%),
+        radial-gradient(circle at 18% 10%, rgba(41, 196, 255, 0.10), transparent 24rem),
+        radial-gradient(circle at 88% 18%, rgba(0, 92, 230, 0.13), transparent 26rem);
+      opacity: 0.85;
+    }
+
+    body::after {
+      background: radial-gradient(circle at center, transparent 0 46%, rgba(0, 0, 0, 0.62) 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app-shell {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 22px 0 34px;
+    }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0 16px;
+      backdrop-filter: blur(22px);
+      background: linear-gradient(180deg, rgba(2, 7, 19, 0.74), rgba(2, 7, 19, 0.12));
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: clamp(230px, 28vw, 340px);
+      height: 82px;
+      border-radius: 0;
+      display: grid;
+      place-items: center;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+      flex: 0 0 auto;
+    }
+
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      filter:
+        drop-shadow(0 0 10px rgba(255, 255, 255, 0.10))
+        drop-shadow(0 0 20px rgba(41, 196, 255, 0.16));
+    }
+
+    .brand-title {
+      min-width: 0;
+    }
+
+    .brand-title p {
+      margin: 0;
+    }
+
+    .brand-kicker {
+      color: var(--blue-300);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      font-weight: 750;
+    }
+
+    .brand-name {
+      color: var(--ice);
+      font-size: clamp(1.08rem, 2vw, 1.45rem);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 550;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+    .agent-hub-wording {
+      color: var(--ice);
+      letter-spacing: 0.30em;
+      text-transform: uppercase;
+      font-weight: 850;
+      font-size: clamp(0.95rem, 1.7vw, 1.28rem);
+      padding-left: 18px;
+      margin-left: 16px;
+      border-left: 1px solid rgba(41, 196, 255, 0.42);
+      text-shadow: 0 0 22px rgba(41, 196, 255, 0.18);
+      white-space: nowrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ghost-btn {
+      border: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--ice);
+      border-radius: 999px;
+      padding: 11px 14px;
+      cursor: pointer;
+      transition: 180ms ease;
+    }
+
+    .ghost-btn:hover {
+      border-color: rgba(41, 196, 255, 0.5);
+      box-shadow: 0 0 24px rgba(0, 140, 255, 0.22);
+      transform: translateY(-1px);
+    }
+
+    .install-btn {
+      color: var(--ice);
+      background: linear-gradient(135deg, rgba(0, 140, 255, 0.92), rgba(0, 92, 230, 0.8));
+      border-color: rgba(41, 196, 255, 0.62);
+      box-shadow: 0 0 32px rgba(0, 140, 255, 0.32);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 38px;
+      border: 1px solid rgba(41, 196, 255, 0.24);
+      background:
+        linear-gradient(110deg, rgba(1, 4, 12, 0.94) 0%, rgba(3, 11, 27, 0.86) 45%, rgba(4, 16, 42, 0.52) 100%),
+        radial-gradient(circle at 78% 35%, rgba(0, 140, 255, 0.20), transparent 28rem);
+      box-shadow: var(--shadow);
+      min-height: 360px;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(0,0,0,0.15) 0 44%, transparent 44.5%),
+        linear-gradient(117deg, transparent 0 52%, rgba(41, 196, 255, 0.7) 52.15%, rgba(0, 92, 230, 0.1) 52.65%, transparent 53%),
+        radial-gradient(circle at 82% 42%, rgba(0, 140, 255, 0.28), transparent 21rem);
+      z-index: -1;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.42)),
+        url("data:image/svg+xml,%3Csvg width='1200' height='620' viewBox='0 0 1200 620' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' x2='1' y1='0' y2='1'%3E%3Cstop stop-color='%23041b3d'/%3E%3Cstop stop-color='%23000716' offset='1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='620' fill='url(%23g)'/%3E%3Cg opacity='.42'%3E%3Crect x='742' y='148' width='320' height='225' rx='6' fill='%23000612' stroke='%2329c4ff' stroke-opacity='.28'/%3E%3Crect x='788' y='178' width='58' height='48' fill='%23ffbf6d' opacity='.85'/%3E%3Crect x='862' y='178' width='58' height='48' fill='%23ffbf6d' opacity='.72'/%3E%3Crect x='936' y='178' width='58' height='48' fill='%23ffbf6d' opacity='.88'/%3E%3Crect x='788' y='246' width='58' height='48' fill='%23ffbf6d' opacity='.6'/%3E%3Crect x='862' y='246' width='58' height='48' fill='%23ffbf6d' opacity='.78'/%3E%3Crect x='936' y='246' width='58' height='48' fill='%23ffbf6d' opacity='.62'/%3E%3Crect x='700' y='377' width='420' height='58' rx='6' fill='%23000c20' stroke='%2329c4ff' stroke-opacity='.18'/%3E%3Cpath d='M670 474 C760 432 897 432 1086 475' stroke='%2329c4ff' stroke-opacity='.30' fill='none'/%3E%3Cpath d='M738 420 L1104 420' stroke='%23fff' stroke-opacity='.16'/%3E%3C/g%3E%3Cg opacity='.45'%3E%3Crect x='555' y='145' width='22' height='210' fill='%230b2f66'/%3E%3Crect x='584' y='95' width='35' height='260' fill='%23092654'/%3E%3Crect x='627' y='130' width='26' height='225' fill='%230b2f66'/%3E%3Crect x='675' y='84' width='38' height='272' fill='%23081d44'/%3E%3Cpath d='M602 95 L602 58' stroke='%2329c4ff' stroke-opacity='.5'/%3E%3Cpath d='M694 84 L694 40' stroke='%2329c4ff' stroke-opacity='.45'/%3E%3Ccircle cx='602' cy='58' r='2' fill='%23fff'/%3E%3Ccircle cx='694' cy='40' r='2' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
+      opacity: 0.42;
+      z-index: -2;
+    }
+
+    .hero-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(250px, 0.85fr);
+      gap: 28px;
+      padding: clamp(24px, 4vw, 48px);
+      align-items: end;
+      min-height: 360px;
+    }
+
+    .eyebrow {
+      color: var(--blue-300);
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      font-size: 0.78rem;
+      font-weight: 780;
+      margin: 0 0 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(3rem, 7vw, 5.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.055em;
+      max-width: 710px;
+      text-shadow: 0 8px 34px rgba(0,0,0,0.45);
+    }
+
+    .blue-word {
+      color: var(--blue-500);
+      text-shadow: 0 0 30px rgba(0, 140, 255, 0.55);
+    }
+
+    .hero-sub {
+      margin: 18px 0 0;
+      color: var(--soft);
+      font-size: clamp(1rem, 1.7vw, 1.2rem);
+      line-height: 1.7;
+      max-width: 670px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .primary-link,
+    .secondary-link {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border-radius: 999px;
+      padding: 12px 17px;
+      font-weight: 780;
+      transition: 180ms ease;
+    }
+
+    .primary-link {
+      color: white;
+      border: 1px solid rgba(41, 196, 255, 0.62);
+      background: linear-gradient(135deg, var(--blue-500), var(--blue-700));
+      box-shadow: 0 0 30px rgba(0, 140, 255, 0.30);
+    }
+
+    .secondary-link {
+      color: var(--ice);
+      border: 1px solid var(--line-soft);
+      background: rgba(255,255,255,0.055);
+    }
+
+    .primary-link:hover,
+    .secondary-link:hover {
+      transform: translateY(-2px);
+      border-color: rgba(41, 196, 255, 0.55);
+    }
+
+    .hero-panel {
+      border: 1px solid rgba(41, 196, 255, 0.22);
+      background:
+        linear-gradient(180deg, rgba(4, 14, 31, 0.76), rgba(1, 5, 13, 0.82));
+      backdrop-filter: blur(18px);
+      border-radius: 26px;
+      padding: 18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.32);
+    }
+
+    .hero-panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .hero-panel-title strong {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 500;
+    }
+
+    .pulse {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--blue-300);
+      box-shadow: 0 0 24px rgba(41, 196, 255, 0.95);
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .mini-stat {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.045);
+      border-radius: 18px;
+      padding: 13px;
+    }
+
+    .mini-stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .mini-stat strong {
+      display: block;
+      margin-top: 8px;
+      font-family: var(--serif);
+      font-size: 2rem;
+      font-weight: 500;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .top-search {
+      margin-top: 8px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      color: var(--ice);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line-soft);
+      border-radius: 999px;
+      min-height: 50px;
+      padding: 0 44px 0 17px;
+      outline: none;
+    }
+
+    .search-box input:focus {
+      border-color: rgba(41, 196, 255, 0.54);
+      box-shadow: 0 0 0 4px rgba(0, 140, 255, 0.12);
+    }
+
+    .search-box span {
+      position: absolute;
+      right: 17px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--blue-300);
+    }
+
+    .view-toggle {
+      display: flex;
+      border: 1px solid var(--line-soft);
+      background: rgba(255,255,255,0.055);
+      border-radius: 999px;
+      padding: 4px;
+      overflow: hidden;
+    }
+
+    .view-toggle button {
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      padding: 0 12px;
+      cursor: pointer;
+      min-height: 42px;
+    }
+
+    .view-toggle button.active {
+      color: var(--ice);
+      background: rgba(0, 140, 255, 0.24);
+      box-shadow: inset 0 0 0 1px rgba(41, 196, 255, 0.18);
+    }
+
+    .section {
+      margin-top: 20px;
+      border: 1px solid rgba(41, 196, 255, 0.18);
+      border-radius: var(--radius-xl);
+      background:
+        linear-gradient(135deg, rgba(7, 23, 46, 0.76), rgba(2, 7, 19, 0.74));
+      box-shadow: 0 18px 62px rgba(0,0,0,0.34);
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 23px 0;
+    }
+
+    .section-title-group p {
+      margin: 0 0 7px;
+      color: var(--blue-300);
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.3rem, 2.6vw, 2rem);
+      letter-spacing: -0.04em;
+    }
+
+    .section-sub {
+      margin-top: 9px;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 780px;
+      font-size: 0.95rem;
+    }
+
+    .section-count {
+      color: var(--blue-300);
+      border: 1px solid rgba(41, 196, 255, 0.24);
+      background: rgba(0, 140, 255, 0.08);
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 20px 23px 23px;
+    }
+
+    .grid.docs {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .tool-card,
+    .doc-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.095);
+      background:
+        linear-gradient(160deg, rgba(9, 29, 59, 0.72), rgba(1, 5, 13, 0.72)),
+        radial-gradient(circle at 20% 10%, rgba(0, 140, 255, 0.13), transparent 12rem);
+      border-radius: var(--radius-lg);
+      min-height: 138px;
+      padding: 17px;
+      transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .tool-card::before,
+    .doc-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 0 48%, rgba(41,196,255,0.18) 48.15%, transparent 49%);
+      opacity: 0;
+      transition: opacity 180ms ease;
+    }
+
+    .tool-card:hover,
+    .doc-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(41, 196, 255, 0.42);
+      box-shadow: 0 16px 48px rgba(0, 140, 255, 0.16);
+    }
+
+    .tool-card:hover::before,
+    .doc-card:hover::before {
+      opacity: 1;
+    }
+
+    .tool-card-inner,
+    .doc-card-inner {
+      position: relative;
+      min-height: 104px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 1;
+    }
+
+    .icon-box {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      color: var(--blue-300);
+      border: 1px solid rgba(41, 196, 255, 0.30);
+      border-radius: 14px;
+      background: rgba(0, 140, 255, 0.11);
+      box-shadow: 0 0 22px rgba(0, 140, 255, 0.14);
+    }
+
+    .icon-box svg {
+      width: 23px;
+      height: 23px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .card-copy h3 {
+      margin: 14px 0 6px;
+      font-size: 1.04rem;
+      letter-spacing: -0.015em;
+    }
+
+    .card-copy p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.84rem;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 14px;
+      color: var(--blue-300);
+      font-size: 0.84rem;
+      font-weight: 750;
+    }
+
+
+    .library-wrap {
+      padding: 20px 23px 23px;
+    }
+
+    .library-block {
+      border: 1px solid rgba(255,255,255,0.095);
+      background:
+        linear-gradient(150deg, rgba(5, 16, 35, 0.72), rgba(1, 5, 13, 0.66)),
+        radial-gradient(circle at 12% 8%, rgba(0, 140, 255, 0.10), transparent 16rem);
+      border-radius: 24px;
+      overflow: hidden;
+      margin-top: 14px;
+    }
+
+    .library-block:first-child {
+      margin-top: 0;
+    }
+
+    .library-block-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 18px 0;
+    }
+
+    .library-block-header p {
+      margin: 0 0 6px;
+      color: var(--blue-300);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .library-block-header h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      letter-spacing: -0.02em;
+    }
+
+    .library-block-header span {
+      color: var(--blue-300);
+      border: 1px solid rgba(41, 196, 255, 0.22);
+      background: rgba(0, 140, 255, 0.08);
+      padding: 8px 11px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      white-space: nowrap;
+    }
+
+    .library-block .grid {
+      padding: 16px 18px 18px;
+    }
+
+    .empty {
+      display: none;
+      margin: 16px 23px 23px;
+      border: 1px dashed rgba(41, 196, 255, 0.25);
+      color: var(--muted);
+      border-radius: 18px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .footer {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+      color: var(--muted);
+      padding: 0 4px;
+      font-size: 0.88rem;
+    }
+
+    .values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .value {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--soft);
+      border-left: 1px solid rgba(255,255,255,0.18);
+      padding-left: 12px;
+      letter-spacing: 0.03em;
+    }
+
+    .value:first-child {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+
+    .hidden-panel {
+      display: none;
+    }
+
+    .hidden-panel.panel-open {
+      display: block;
+      animation: revealPanel 220ms ease both;
+    }
+
+    @keyframes revealPanel {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tool-card.active-panel-card {
+      border-color: rgba(41, 196, 255, 0.72);
+      box-shadow: 0 0 0 1px rgba(41, 196, 255, 0.20), 0 20px 58px rgba(0, 140, 255, 0.20);
+      background:
+        linear-gradient(160deg, rgba(0, 92, 230, 0.20), rgba(1, 5, 13, 0.78)),
+        radial-gradient(circle at 20% 10%, rgba(0, 140, 255, 0.20), transparent 12rem);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      z-index: 80;
+      color: var(--ice);
+      border: 1px solid rgba(41, 196, 255, 0.28);
+      border-radius: 999px;
+      background: rgba(2, 7, 19, 0.88);
+      backdrop-filter: blur(18px);
+      padding: 12px 16px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.38);
+      transition: 180ms ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 980px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .hero-panel {
+        max-width: 560px;
+      }
+
+      .grid,
+      .grid.docs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell {
+        width: min(100% - 18px, 1180px);
+        padding: 8px 0 22px;
+      }
+
+      .top-bar {
+        position: relative;
+        padding: 8px 0 10px;
+      }
+
+      .brand-mark {
+        width: 56px;
+        height: 56px;
+        border-radius: 17px;
+      }
+
+      .brand-mark img {
+        width: 48px;
+        height: 48px;
+      }
+
+      .brand-kicker {
+        font-size: 0.64rem;
+      }
+
+      .brand-name {
+        font-size: 0.92rem;
+      }
+
+  
+    .agent-hub-wording {
+      color: var(--ice);
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      font-weight: 800;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      padding-left: 18px;
+      margin-left: 14px;
+      border-left: 1px solid rgba(41, 196, 255, 0.34);
+      text-shadow: 0 0 22px rgba(41, 196, 255, 0.22);
+      white-space: nowrap;
+    }
+
+    .top-actions {
+        display: none;
+      }
+
+      .hero {
+        border-radius: 26px;
+      }
+
+      .hero-inner {
+        padding: 24px 18px;
+        min-height: auto;
+      }
+
+      h1 {
+        font-size: clamp(2.7rem, 15vw, 4.2rem);
+      }
+
+      .hero-sub {
+        font-size: 0.98rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .primary-link,
+      .secondary-link {
+        width: 100%;
+      }
+
+      .mini-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .view-toggle {
+        display: none;
+      }
+
+      .section {
+        border-radius: 22px;
+      }
+
+      .section-header {
+        align-items: flex-start;
+        padding: 18px 16px 0;
+        flex-direction: column;
+      }
+
+      .grid,
+      .grid.docs {
+        grid-template-columns: 1fr;
+        padding: 16px;
+      }
+
+      .library-wrap {
+        padding: 16px;
+      }
+
+      .library-block-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px 16px 0;
+      }
+
+      .library-block .grid {
+        padding: 14px 16px 16px;
+      }
+
+      .tool-card,
+      .doc-card {
+        min-height: 118px;
+      }
+
+      .footer {
+        grid-template-columns: 1fr;
+      }
+
+      .values {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (display-mode: standalone) {
+      .install-btn {
+        display: none;
+      }
+    }
+  </style>
 </head>
+
 <body>
   <div class="app-shell">
-    <header class="hero">
-      <div class="brand-block">
-        <div class="logo-card"><img src="assets/blue-lily-logo.jpg" alt="Blue Lily Properties" /></div>
-        <div>
-          <p class="eyebrow">Blue Lily Properties</p>
-          <h1>Complex Report Builder</h1>
-          <p class="subtext">Clean rebuild: one TVA report upload, editable fields, prepared-by agent block, owner information excluded, Blue Lily styled PDF output.</p>
+    <header class="top-bar">
+      <a class="brand" href="#top" aria-label="Blue Lily Agent Hub Home">
+        <div class="brand-mark">
+          <img src="assets/blue-lily-logo.png" alt="Blue Lily Properties" />
         </div>
-      </div>
-      <div class="hero-status">
-        <span>V2 rebuild</span>
-        <strong>Single upload. Clean PDF. No duplicate sections.</strong>
+        <div class="agent-hub-wording">AGENT HUB</div>
+      </a>
+
+      <div class="top-actions">
+        <button class="ghost-btn" type="button" id="copyLinkBtn">Copy link</button>
+        <button class="ghost-btn install-btn" type="button" id="installBtn">Install app</button>
       </div>
     </header>
 
-    <main class="layout-grid">
-      <section class="panel span-2">
-        <div class="panel-title-row">
-          <div><p class="step-label">Step 1</p><h2>Agent details</h2></div>
-          <span id="agentStatus" class="pill">Built-in list ready</span>
-        </div>
-
-        <label class="input-label" for="agentSheetUrl">Optional public Google Sheet URL / Apps Script JSONP URL</label>
-        <div class="inline-row">
-          <input id="agentSheetUrl" type="url" placeholder="Paste public CSV Google Sheet URL or Apps Script URL" />
-          <button id="loadAgentsBtn" type="button">Load Agents</button>
-        </div>
-        <p class="helper">Agent information is always printed on page 1 under “Prepared by”. You can edit it before export.</p>
-
-        <label class="input-label" for="agentSelect">Selected agent</label>
-        <select id="agentSelect"></select>
-
-        <div class="form-grid agent-grid">
-          <label>Agent name<input id="agentName" type="text" /></label>
-          <label>Cell number<input id="agentCell" type="text" /></label>
-          <label>Email<input id="agentEmail" type="email" /></label>
-          <label>PPRA FFC<input id="agentFfc" type="text" /></label>
-        </div>
-      </section>
-
-      <section class="panel upload-panel">
-        <div class="panel-title-row">
-          <div><p class="step-label">Step 2</p><h2>TVA report</h2></div>
-          <span class="pill blue">One PDF only</span>
-        </div>
-        <label class="upload-box" for="tvaPdf">
-          <input id="tvaPdf" type="file" accept="application/pdf,.pdf" />
-          <span class="upload-title">Upload TVA PDF</span>
-          <span class="upload-copy">The app reads scheme details, transfer blocks, ownership stats and Growth & Activity charts.</span>
+    <main id="top">
+      <div class="search-row top-search">
+        <label class="search-box" aria-label="Search hub">
+          <input id="hubSearch" type="search" placeholder="Search tools, documents or resources..." autocomplete="off" />
+          <span>⌕</span>
         </label>
-        <div class="button-stack">
-          <button id="parseReportBtn" type="button">Capture Data</button>
-          <button id="demoBtn" type="button" class="secondary">Load Demo</button>
-        </div>
-        <p id="statusBadge" class="status-badge">Ready</p>
-      </section>
 
-      <section class="panel span-3">
-        <div class="panel-title-row">
-          <div><p class="step-label">Step 3</p><h2>Editable report data</h2></div>
-          <span class="pill">Check before export</span>
+        <div class="view-toggle" aria-label="View toggle">
+          <button class="active" type="button" data-view="all">All</button>
+          <button type="button" data-jump="#agent-tools">Tools</button>
         </div>
+      </div>
 
-        <div class="form-grid">
-          <label>Report title<input id="reportTitle" type="text" value="Blue Lily Complex Report" /></label>
-          <label>Complex / scheme name<input id="schemeName" type="text" /></label>
-          <label>Suburb / town<input id="suburb" type="text" /></label>
-          <label>Municipality<input id="municipality" type="text" /></label>
-          <label>Street address<input id="streetAddress" type="text" /></label>
-          <label>Scheme number<input id="schemeNumber" type="text" /></label>
-          <label>Number of units<input id="numberUnits" type="text" /></label>
-          <label>Age of scheme<input id="schemeAge" type="text" /></label>
-        </div>
-
-        <div class="table-title-row">
-          <div><h3>Transfer information</h3><p class="helper no-margin">Owner names and ID numbers are excluded by design.</p></div>
-          <button id="addTransferRowBtn" type="button" class="secondary small-btn">Add row</button>
-        </div>
-        <div class="table-wrap">
-          <table id="transferTable">
-            <thead>
-              <tr>
-                <th>Unit</th><th>Size (m²)</th><th>Registration date</th><th>Purchase date</th><th>Purchase price</th><th></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-
-        <div class="two-column-fields">
-          <div>
-            <h3>Period of ownership</h3>
-            <div class="mini-grid">
-              <label>Less than 5 years<input id="ownLess5" type="number" min="0" /></label>
-              <label>5 - 7 years<input id="own5" type="number" min="0" /></label>
-              <label>8 - 10 years<input id="own8" type="number" min="0" /></label>
-              <label>11 years and more<input id="own11" type="number" min="0" /></label>
+      <section class="section searchable-section" id="agent-tools" data-section="tools">
+        <div class="section-header">
+          <div class="section-title-group">
+            <div class="section-sub">
+              Quick access to the core platforms used for listings, valuation, marketing and property preparation.
             </div>
           </div>
-          <div>
-            <h3>Age of owners</h3>
-            <div class="mini-grid">
-              <label>18 - 35<input id="age18" type="number" min="0" /></label>
-              <label>35 - 49<input id="age35" type="number" min="0" /></label>
-              <label>50 - 64<input id="age50" type="number" min="0" /></label>
-              <label>65+<input id="age65" type="number" min="0" /></label>
+        </div>
+
+        <div class="grid" id="toolsGrid"></div>
+        <div class="empty">No matching agent tools found.</div>
+      </section>
+
+      <section class="section searchable-section hidden-panel" id="resources" data-section="resources compliance neser inc transfer bond cost process conveyancing attorneys">
+        <div class="section-header">
+          <div class="section-title-group">
+            <p>Section 02</p>
+            <h2>Resources</h2>
+            <div class="section-sub">
+              Compliance, conveyancing and support resources for Blue Lily agents.
             </div>
+          </div>
+          <span class="section-count">3 resources</span>
+        </div>
+
+        <div class="library-wrap">
+          <div class="library-block" id="blue-lily-resources">
+            <div class="library-block-header">
+              <div>
+                <p>Blue Lily Resources</p>
+                <h3>Compliance Resources</h3>
+              </div>
+              <span>1 resource</span>
+            </div>
+            <div class="grid docs" id="complianceGrid"></div>
+            <div class="empty">No matching Blue Lily resources found.</div>
+          </div>
+
+          <div class="library-block" id="neser-inc-resources">
+            <div class="library-block-header">
+              <div>
+                <p>Attorney Resources</p>
+                <h3>Neser Inc Resources</h3>
+              </div>
+              <span>2 resources</span>
+            </div>
+            <div class="grid docs" id="neserGrid"></div>
+            <div class="empty">No matching Neser Inc resources found.</div>
           </div>
         </div>
       </section>
 
-      <section class="panel span-2">
-        <div class="panel-title-row">
-          <div><p class="step-label">Growth and Activity</p><h2>Clean chart capture</h2></div>
-          <span id="graphStatus" class="pill">Not captured</span>
+      <section class="section searchable-section hidden-panel" id="document-library" data-section="document library sales documents rental documents ppra property practitioners regulatory authority fidelity fund certificate registration certificate">
+        <div class="section-header">
+          <div class="section-title-group">
+            <p>Section 03</p>
+            <h2>Document Library</h2>
+            <div class="section-sub">
+              Sales, rental and PPRA documents grouped into one clean Blue Lily document library.
+            </div>
+          </div>
+          <span class="section-count">12 documents</span>
         </div>
-        <p class="helper">The app captures only the market activity charts, excluding the duplicated Period of Ownership area. It can also generate a fallback chart from transfer data.</p>
-        <div class="graph-controls">
-          <label>Chart page<input id="graphPage" type="number" min="1" placeholder="Auto" /></label>
-          <button id="extractGraphBtn" type="button" class="secondary">Re-capture Charts</button>
-          <button id="clearGraphBtn" type="button" class="secondary">Use Generated Chart</button>
-        </div>
-        <div id="graphPreview" class="graph-preview"><span>No chart captured yet</span></div>
-      </section>
 
-      <section class="panel export-panel">
-        <div class="panel-title-row"><div><p class="step-label">Step 4</p><h2>Preview & export</h2></div></div>
-        <button id="previewPdfBtn" type="button" class="primary-action">Preview PDF</button>
-        <button id="downloadPdfBtn" type="button">Download PDF</button>
-        <button id="saveJsonBtn" type="button" class="secondary">Download JSON</button>
-        <label class="input-label" for="jsonFile">Reload saved JSON</label>
-        <input id="jsonFile" type="file" accept="application/json,.json" />
-      </section>
+        <div class="library-wrap">
+          <div class="library-block" id="sales-documents">
+            <div class="library-block-header">
+              <div>
+                <p>Sales Library</p>
+                <h3>Sales Documents</h3>
+              </div>
+              <span>8 documents</span>
+            </div>
+            <div class="grid docs" id="salesGrid"></div>
+            <div class="empty">No matching sales documents found.</div>
+          </div>
 
-      <section class="panel span-3 preview-panel">
-        <div class="panel-title-row">
-          <div><p class="step-label">Preview</p><h2>Generated PDF</h2></div>
-          <a id="downloadLink" href="#" class="download-link hidden" download>Download current PDF</a>
+          <div class="library-block" id="rental-documents">
+            <div class="library-block-header">
+              <div>
+                <p>Rental Library</p>
+                <h3>Rental Documents</h3>
+              </div>
+              <span>3 documents</span>
+            </div>
+            <div class="grid docs" id="rentalGrid"></div>
+            <div class="empty">No matching rental documents found.</div>
+          </div>
+
+          <div class="library-block" id="ppra-documents">
+            <div class="library-block-header">
+              <div>
+                <p>PPRA Library</p>
+                <h3>PPRA</h3>
+              </div>
+              <span>1 document</span>
+            </div>
+            <div class="grid docs" id="ppraGrid"></div>
+            <div class="empty">No matching PPRA documents found.</div>
+          </div>
         </div>
-        <iframe id="pdfPreview" title="PDF preview"></iframe>
       </section>
     </main>
+
+    <footer class="footer">
+      <span><strong>Blue Lily Properties</strong> • Agent Hub • Premium resource platform</span>
+      <div class="values">
+        <span class="value">Trust</span>
+        <span class="value">Integrity</span>
+        <span class="value">Results</span>
+        <span class="value">Relationships</span>
+      </div>
+    </footer>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="app.js"></script>
+  <div class="toast" id="toast">Copied</div>
+
+  <script>
+    const icons = {
+      home: `<svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg>`,
+      people: `<svg viewBox="0 0 24 24"><path d="M16 19v-1.5c0-2-1.7-3.5-4-3.5H8c-2.3 0-4 1.5-4 3.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M19.5 19v-1.3c0-1.8-1.1-3-2.9-3.5"/><path d="M16.5 5.2a3.2 3.2 0 0 1 0 6.1"/></svg>`,
+      document: `<svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v5h5"/><path d="M9.5 12h5"/><path d="M9.5 16h6.5"/></svg>`,
+      shield: `<svg viewBox="0 0 24 24"><path d="M12 3 20 6v5.8c0 4.8-3.4 7.8-8 9.2-4.6-1.4-8-4.4-8-9.2V6z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>`,
+      chart: `<svg viewBox="0 0 24 24"><path d="M4 20h16"/><path d="M6.5 17v-5"/><path d="M11.5 17V8"/><path d="M16.5 17V5"/><path d="m6 10 4-4 4 3 4-5"/></svg>`,
+      calculator: `<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h.1"/><path d="M12 11h.1"/><path d="M16 11h.1"/><path d="M8 15h.1"/><path d="M12 15h.1"/><path d="M16 15h.1"/></svg>`,
+      image: `<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m7 16 3.4-3.4 2.6 2.6 2-2L18 16"/><circle cx="9" cy="9" r="1.2"/><path d="M18 3v3"/><path d="M16.5 4.5h3"/></svg>`,
+      report: `<svg viewBox="0 0 24 24"><path d="M4 19.5h16"/><path d="M7 17V9"/><path d="M12 17V5"/><path d="M17 17v-6"/><path d="M7 9h10"/></svg>`,
+      megaphone: `<svg viewBox="0 0 24 24"><path d="M4 13h4l10 5V6L8 11H4z"/><path d="M8 13v5"/><path d="M18 10.5h2.5"/><path d="M18 14h2"/></svg>`,
+      link: `<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"/></svg>`
+    };
+
+    const tools = [
+      {
+        title: "PropCTRL",
+        desc: "Open your PropCTRL online login.",
+        icon: "home",
+        url: "https://online.propctrl.com/",
+        cta: "Open platform"
+      },
+      {
+        title: "Virtual Agent",
+        desc: "Open The Virtual Agent search platform.",
+        icon: "people",
+        url: "https://app.thevirtualagent.co.za/Search/Criteria",
+        cta: "Open platform"
+      },
+      {
+        title: "Loom",
+        desc: "Open the Loom valuation portal.",
+        icon: "report",
+        url: "https://portal.loom.co.za/app/home",
+        cta: "Open portal"
+      },
+      {
+        title: "Blue Lily Website",
+        desc: "Open the official Blue Lily Properties website.",
+        icon: "link",
+        url: "https://www.bluelilysa.co.za/",
+        cta: "Open website"
+      },
+      {
+        title: "CMA Builder",
+        desc: "Build a market-related CMA report.",
+        icon: "chart",
+        url: "https://cmagenerator.netlify.app/",
+        cta: "Build CMA"
+      },
+      {
+        title: "Bond Calculator",
+        desc: "Estimate bond repayments and buyer costs.",
+        icon: "calculator",
+        url: "https://bondpaymentcalculator.netlify.app/",
+        cta: "Calculate"
+      },
+      {
+        title: "Photo Edits",
+        desc: "Open the Blue Lily property photo edit tool.",
+        icon: "image",
+        url: "https://bluephotoeditor.netlify.app/",
+        cta: "Edit photos"
+      },
+      {
+        title: "Complex Report",
+        desc: "Create a Blue Lily complex report from TVA data.",
+        icon: "report",
+        url: "https://cmagenerator.netlify.app/",
+        cta: "Open report"
+      },
+      {
+        title: "Marketing Hub",
+        desc: "Open marketing resources and agent campaign tools.",
+        icon: "megaphone",
+        url: "https://drive.google.com/drive/folders/1XDLNYy-xmq3UQADSMIMy3ZxzpA9pHi1i?usp=sharing",
+        cta: "Open hub"
+      },
+      {
+        title: "Resources",
+        desc: "Open Blue Lily compliance and support resources.",
+        icon: "shield",
+        url: "#resources",
+        cta: "Open resources",
+        internal: true,
+        opensPanel: "resources"
+      },
+      {
+        title: "Document Library",
+        desc: "Open sales and rental document libraries.",
+        icon: "document",
+        url: "#document-library",
+        cta: "Open library",
+        internal: true,
+        opensPanel: "document-library"
+      }
+    ];
+
+    const compliance = [
+      {
+        title: "Blue Lily Compliance",
+        desc: "Open compliance links, forms and resources.",
+        icon: "shield",
+        url: "https://bluelilycompliance.netlify.app/",
+        cta: "Open compliance"
+      }
+    ];
+
+    const neserResources = [
+      ["Transfer & Bond Cost Guide", "Neser Inc transfer and bond cost reference guide.", "assets/docs/neser-transfer-and-bond-cost-guide.pdf"],
+      ["Property Transfer Process", "Neser Inc residential conveyancing transfer process guide.", "assets/docs/neser-property-transfer-process.pdf"]
+    ].map(([title, desc, url]) => ({ title, desc, url, icon: "document", cta: "Open PDF" }));
+
+    const salesDocs = [
+      ["1. OTP", "Sales agreement document.", "assets/docs/01-otp.pdf"],
+      ["2. PPRA Mandatory Disclosure", "Mandatory disclosure document.", "assets/docs/02-ppra-mandatory-disclosure.pdf"],
+      ["3. Purchaser Particulars", "Purchaser details form.", "assets/docs/03-purchaser-particulars.pdf"],
+      ["4. Sellers Particulars", "Seller details form.", "assets/docs/04-sellers-particulars.pdf"],
+      ["5. Commission Agreement", "Commission agreement document.", "assets/docs/05-commission-agreement.pdf"],
+      ["6. Additional Conditions", "Additional conditions document.", "assets/docs/06-additional-conditions.pdf"],
+      ["7. Open Mandate", "Open mandate Word document.", "assets/docs/07-open-mandate.docx"],
+      ["8. Exclusive Mandate", "Exclusive mandate Word document.", "assets/docs/08-exclusive-mandate.docx"]
+    ].map(([title, desc, url]) => ({ title, desc, url, icon: "document", cta: "Download" }));
+
+    const rentalDocs = [
+      ["1. Mandate", "Rental mandate document.", "assets/docs/09-rental-mandate.pdf"],
+      ["2. Application", "Rental application document.", "assets/docs/10-rental-application.pdf"],
+      ["3. Mandatory Disclosure", "Rental mandatory disclosure document.", "assets/docs/11-rental-mandatory-disclosure.pdf"]
+    ].map(([title, desc, url]) => ({ title, desc, url, icon: "document", cta: "Download" }));
+
+    const ppraDocs = [
+      ["PPRA Individual Application Form", "Application for a Fidelity Fund Certificate or Registration Certificate by a natural person.", "assets/docs/ppra-individual-application-form.pdf"]
+    ].map(([title, desc, url]) => ({ title, desc, url, icon: "document", cta: "Download" }));
+
+    function buildCard(item, type = "tool") {
+      const safeTitle = item.title.replace(/"/g, "&quot;");
+      const target = item.internal || item.url.startsWith("#") ? "" : `target="_blank" rel="noopener"`;
+      const openPanelAttr = item.opensPanel ? `data-open-panel="${item.opensPanel}"` : "";
+      return `
+        <a class="${type === "doc" ? "doc-card" : "tool-card"} searchable-card"
+           href="${item.url}"
+           ${target}
+           ${openPanelAttr}
+           data-search="${(item.title + " " + item.desc + " " + item.cta).toLowerCase()}"
+           aria-label="${safeTitle}">
+          <div class="${type === "doc" ? "doc-card-inner" : "tool-card-inner"}">
+            <div>
+              <div class="icon-box">${icons[item.icon] || icons.link}</div>
+              <div class="card-copy">
+                <h3>${item.title}</h3>
+                <p>${item.desc}</p>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span>${item.cta}</span>
+              <span>${item.opensPanel ? "↓" : item.url === "#" ? "•" : "→"}</span>
+            </div>
+          </div>
+        </a>
+      `;
+    }
+
+    function render() {
+      document.getElementById("toolsGrid").innerHTML = tools.map(item => buildCard(item, "tool")).join("");
+      document.getElementById("complianceGrid").innerHTML = compliance.map(item => buildCard(item, "doc")).join("");
+      document.getElementById("neserGrid").innerHTML = neserResources.map(item => buildCard(item, "doc")).join("");
+      document.getElementById("salesGrid").innerHTML = salesDocs.map(item => buildCard(item, "doc")).join("");
+      document.getElementById("rentalGrid").innerHTML = rentalDocs.map(item => buildCard(item, "doc")).join("");
+      document.getElementById("ppraGrid").innerHTML = ppraDocs.map(item => buildCard(item, "doc")).join("");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function setupSearch() {
+      const input = document.getElementById("hubSearch");
+      input.addEventListener("input", () => {
+        const term = input.value.trim().toLowerCase();
+
+        document.querySelectorAll(".searchable-section").forEach(section => {
+          let sectionShown = 0;
+
+          section.querySelectorAll(".library-block").forEach(block => {
+            let blockShown = 0;
+
+            block.querySelectorAll(".searchable-card").forEach(card => {
+              const match = !term || card.dataset.search.includes(term);
+              card.style.display = match ? "" : "none";
+              if (match) blockShown += 1;
+            });
+
+            const empty = block.querySelector(".empty");
+            if (empty) empty.style.display = blockShown ? "none" : "block";
+
+            if (term) {
+              block.style.display = blockShown ? "" : "none";
+            } else {
+              block.style.display = "";
+            }
+
+            sectionShown += blockShown;
+          });
+
+          const directCards = Array.from(section.querySelectorAll(":scope > .grid .searchable-card"));
+          directCards.forEach(card => {
+            const match = !term || card.dataset.search.includes(term);
+            card.style.display = match ? "" : "none";
+            if (match) sectionShown += 1;
+          });
+
+          const directEmpty = section.querySelector(":scope > .empty");
+          if (directEmpty) directEmpty.style.display = sectionShown ? "none" : "block";
+        });
+      });
+    }
+
+    function setupButtons() {
+      document.querySelectorAll("[data-jump]").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelector(button.dataset.jump)?.scrollIntoView({ behavior: "smooth" });
+        });
+      });
+
+      document.querySelectorAll(".view-toggle button").forEach(button => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll(".view-toggle button").forEach(item => item.classList.remove("active"));
+          button.classList.add("active");
+        });
+      });
+
+      document.getElementById("copyLinkBtn").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          showToast("App link copied");
+        } catch {
+          showToast("Copy not available");
+        }
+      });
+
+      let deferredPrompt = null;
+      const installBtn = document.getElementById("installBtn");
+
+      window.addEventListener("beforeinstallprompt", event => {
+        event.preventDefault();
+        deferredPrompt = event;
+        installBtn.style.display = "inline-flex";
+      });
+
+      installBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) {
+          showToast("Use browser menu to install");
+          return;
+        }
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+      });
+    }
+
+    function openPanel(panelId) {
+      const panel = document.getElementById(panelId);
+      if (!panel) return;
+
+      const isAlreadyOpen = panel.classList.contains("panel-open");
+
+      document.querySelectorAll(".hidden-panel").forEach(section => {
+        section.classList.remove("panel-open");
+      });
+
+      document.querySelectorAll("[data-open-panel]").forEach(card => {
+        card.classList.remove("active-panel-card");
+      });
+
+      if (isAlreadyOpen) {
+        document.getElementById("agent-tools")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      panel.classList.add("panel-open");
+
+      const activeCard = document.querySelector(`[data-open-panel="${panelId}"]`);
+      if (activeCard) activeCard.classList.add("active-panel-card");
+
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function setupInternalCards() {
+      document.addEventListener("click", event => {
+        const panelLink = event.target.closest("[data-open-panel]");
+        if (panelLink) {
+          event.preventDefault();
+          openPanel(panelLink.dataset.openPanel);
+          return;
+        }
+
+        const link = event.target.closest("a[href='#']");
+        if (!link) return;
+        event.preventDefault();
+        showToast("Connect this tile to your next Blue Lily app");
+      });
+    }
+
+    function setupServiceWorker() {
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch(() => {});
+        });
+      }
+    }
+
+    render();
+    setupSearch();
+    setupButtons();
+    setupInternalCards();
+    setupServiceWorker();
+  </script>
 </body>
 </html>
