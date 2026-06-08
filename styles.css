@@ -39,7 +39,7 @@ body {
 .logo-card { width: 285px; max-width: 34vw; background: #fff; border-radius: 20px; padding: 18px 20px; box-shadow: 0 16px 35px rgba(0,0,0,0.18); }
 .logo-card img { width: 100%; display: block; }
 .eyebrow { margin: 0 0 8px; color: #d7b476; text-transform: uppercase; letter-spacing: 0.20em; font-size: 12px; font-weight: 800; }
-h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(34px, 4vw, 56px); line-height: 0.98; letter-spacing: -0.035em; }
+h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(42px, 5.2vw, 72px); line-height: 0.96; letter-spacing: -0.04em; }
 .subtext { max-width: 720px; margin: 16px 0 0; color: rgba(255,255,255,0.82); font-size: 15px; line-height: 1.6; }
 .hero-status { min-width: 280px; position: relative; z-index: 1; padding: 24px; border-radius: 22px; border: 1px solid rgba(185, 147, 85, 0.42); border-left: 4px solid var(--gold); background: rgba(255,255,255,0.06); display: flex; flex-direction: column; justify-content: center; }
 .hero-status span { color: #d7b476; text-transform: uppercase; letter-spacing: 0.16em; font-size: 12px; font-weight: 800; }
