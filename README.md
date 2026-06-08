@@ -1,147 +1,81 @@
-# Blue Lily CMA Online App - v5
+# Blue Lily Complex Report Builder V2
 
-This version includes the Sheet 1 calculation logic from the original Excel workbook.
+A clean rebuild of the Blue Lily Complex Report app.
 
-## What is included
+## What this version does
 
-- 10-page Blue Lily CMA PDF preview and export.
-- Property type dropdown matching the original sheet:
-  - SECTIONAL
-  - RESIDENTIAL
-  - COMMERCIAL
-  - AGRICULTURAL
-  - INDUSTRIAL
-  - VACANT LAND
-- Market calculator for:
-  - Sold comparable properties
-  - Currently on the market properties
-  - Price per m² per comparable
-  - Lowest sold price
-  - Average sold price
-  - Median price
-  - Highest sold price
-  - Average price per m²
-  - Recommended market value
-  - 15% below, 10% below, market value, 10% above and 15% above
-  - Absorption Based Price Index (API)
-  - Buyer / shifting / seller market indicator
-- On-market image upload page.
-- Under-offer screenshot upload page.
-- Seller FICA and compliance page.
-- Export PDF button.
-- Backup/import JSON option.
+- Uses one upload only: TVA Property Report PDF.
+- Uses the new Blue Lily Properties logo from `assets/blue-lily-logo.jpg`.
+- Creates the PDF letterhead dynamically inside the app, so the old logo cannot remain in the export.
+- Always adds a `Prepared by` agent block on page 1.
+- Lets you select or edit agent name, cell, email and PPRA FFC before export.
+- Excludes owner names and owner ID numbers from the exported PDF.
+- Extracts and edits:
+  - Complex / sectional scheme name
+  - Suburb / town
+  - Municipality
+  - Street address
+  - Scheme number
+  - Number of units
+  - Age of scheme
+  - Transfer information
+  - Period of ownership
+  - Age of owners
+- Captures Growth and Activity charts without duplicating the Period of Ownership section.
+- Generates fallback Blue Lily styled charts from transfer data when chart capture is not available.
+- Dynamically paginates long transfer tables.
 
-## Formula logic added
+## Run locally
 
-The app follows the same logic as Sheet 1:
+Do not open `index.html` directly from your file browser. Run a local server:
 
-- Sold price per m² = Sales Price / Built Area
-- Highest sold price = MAX of sold comparable sales prices
-- Lowest sold price = MIN of sold comparable sales prices
-- Average sold price = AVERAGE of sold comparable sales prices
-- Median = MEDIAN of sold comparable sales prices
-- Average price per m² = AVERAGE of sold comparable price per m² values
-- Active price per m² = Sales Price / Built Area
-- Active highest advertised = MAX of active listing sales prices
-- Active lowest advertised = MIN of active listing sales prices
-- Active highest price per m² = MAX of active listing price per m² values
-- Client estimated values = Client under-roof size x comparable price per m² highs/lows
-- Recommended price = AVERAGE of sold prices, active advertised prices and client estimated values
-- API = (Recent Sales / 12) / Competing Properties
-- Market type:
-  - API above 20% = Sellers Market
-  - API below 15% = Buyers Market
-  - API between 15% and 20% = Shifting Market
+```bash
+cd blue-lily-complex-report
+python3 -m http.server 8080
+```
 
-## Deployment
+Then open:
 
-Upload the full folder to Netlify, GitHub Pages or any static hosting provider.
-Open `index.html` locally to test.
+```text
+http://localhost:8080
+```
 
-## Version 6 updates
-- Website output is locked to bluelilysa.co.za for all agents.
-- Address and Seller FICA / Compliance output auto-shrinks to fit the PDF template area.
-- Competition image pages now allow up to 5 images per page section and preserve image aspect ratio without cropping/stretching.
+## Deploy to Netlify
 
-## Version 7 updates
-- Prepared By is now loaded dynamically from the Google Sheet backend.
-- The app expects the Google Sheet to have these headers in row 1: Name, Number, Email, FFC.
-- When an agent name is selected, Number, Email and FFC auto-populate from the same row.
-- The app refreshes the agent list on page load, when the browser window regains focus, and every 5 minutes while open.
-- Website remains locked to bluelilysa.co.za for all agents.
+Drag the full `blue-lily-complex-report` folder into Netlify. No build command is needed.
 
-## Google Sheet backend
-Current sheet ID wired into app.js:
-1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY
+## Agent sheet setup
 
-The sheet must be shared so the deployed app can view it. Add new agents to Sheet1 under the existing columns and they will appear in the Prepared By dropdown after refresh.
+The app can use:
 
-## Version 8 updates
-- Fixed FICA / Compliance live syncing so dropdown changes are pulled into the PDF preview before export.
-- Seller FICA and Compliance Certificates output now refreshes from the current form values every time the PDF preview renders.
-- Export PDF now forces one final form sync and text fit before generating the PDF.
-- FICA / Compliance page text colour has been changed to Blue Lily blue instead of black.
-- FICA / Compliance text fitting has been tightened to fit the allocated PDF area better.
+1. Built-in editable agent details.
+2. A public Google Sheet CSV URL.
+3. A private Google Sheet through the optional Apps Script bridge in `google-apps-script/Code.gs`.
 
+Recommended agent sheet columns:
 
-## v9 - Optional Property Report / CMA PDF Import
+```text
+Name, Cell, Email, FFC
+```
 
-This version adds an optional PDF importer at the top of the form.
+or
 
-Supported import layouts:
-- LOOM Comparative Market Analysis reports
-- TVA Property Report PDFs
+```text
+First Name, Surname, Cell Phone, Email Address, FFC Number
+```
 
-How it works:
-1. Upload a supported PDF in the "Optional Property Report / CMA Import" section.
-2. The app reads the PDF in the browser.
-3. It pre-populates the available fields, including owner, address, property size, purchase information, property type, market area and recent comparable sales.
-4. All imported fields remain editable.
-5. The upload is optional. The app can still be completed fully manually without a property report.
+## Notes
 
-Notes:
-- The app loads up to 8 comparable sale rows into the calculator to match the current CMA calculator layout.
-- Agent website remains locked to bluelilysa.co.za.
-- Prepared By details still come from the Google Sheet agent backend when a matching agent is selected.
+TVA report layouts can change. This V2 parser supports both the old table-style transfer layout and the newer block-style transfer layout. If registration dates are not present in the TVA PDF, the app marks the registration date column as `-`.
 
+## Agent roster wired in
 
-## v10 update
-- Strengthened the cover-page address auto-fit for imported LOOM and TVA reports.
-- Address text now shrinks further and line-height tightens before export/print, so long imported addresses fit inside the allocated cover-page area.
+The app is now wired to this default Blue Lily agent roster:
 
+`https://docs.google.com/spreadsheets/d/1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY/edit?gid=0#gid=0`
 
-## Branding update
-- Header now shows the Blue Lily logo next to the app name.
-- Favicon, Apple touch icon, and Android app icons are included.
-- `manifest.json` is included so installed/PWA shortcuts use the Blue Lily icon across supported devices.
+On app load, it automatically tries to read the roster as CSV. If the Google Sheet is not publicly readable, use the included Apps Script bridge in `google-apps-script/Code.gs`. The bridge is already wired to the spreadsheet ID:
 
+`1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY`
 
-## Clean-start update
-- The app no longer restores previous form data, imported reports or uploaded images on reload.
-- Every new page load starts blank and clean.
-- The agent list still refreshes from the Google Sheet backend.
-- To keep work intentionally, use Download backup and Import backup.
-
-
-## v15 update
-- LOOM owner import now keeps only the owner name text.
-- ID numbers, marital status, spouse/status wording and ownership percentages are removed before the owner field is populated.
-- The app still starts clean on every fresh load.
-
-
-## v16 owner import fix
-- LOOM owner import now strips ID numbers and marital/status wording before populating the owner field.
-- Example: `BARNARD CHRISTINA HELENA 6004060089089 MARRIED OUT` becomes `BARNARD CHRISTINA HELENA`.
-
-
-## v17 LOOM sectional size import
-- LOOM `Deeds Extent` now imports into `Under Roof` as floor size.
-- For LOOM sectional-title imports, `Surveyor General Extent` is not used as Erf Size because it is normally the scheme / parent extent.
-- If no real land size is provided, Erf Size stays blank.
-
-
-## v18 behaviour update
-- The app opens clean on every page load.
-- Uploading a new LOOM/TVA property report resets the whole app first, then imports the new PDF data.
-- Market statistics, price per m², API and recommended price calculations stay blank until a recognised property report PDF has been imported.
-- Manual entry is still available for client, property, agent, FICA/compliance and PDF export fields.
+Deploy the Apps Script as a Web App and paste that Web App URL into the Agent Google Sheet URL field.

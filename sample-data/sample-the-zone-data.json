@@ -1,0 +1,26 @@
+{
+  "agent": {
+    "name": "Dawie du Toit",
+    "cell": "084 062 4865",
+    "email": "dawie@bluelilysa.co.za",
+    "ffc": "1227449"
+  },
+  "report": {
+    "title": "Blue Lily Complex Report",
+    "schemeName": "THE ZONE",
+    "suburb": "UMHLANGA ROCKS",
+    "municipality": "ETHEKWINI",
+    "streetAddress": "12 SOLSTICE ROAD",
+    "schemeNumber": "527",
+    "numberUnits": "66",
+    "schemeAge": "16 / 2006"
+  },
+  "transferRows": [
+    { "unit": "21", "size": "77", "regDate": "-", "purchaseDate": "2019-05-19", "purchasePrice": "R 1 430 000" },
+    { "unit": "22", "size": "87", "regDate": "-", "purchaseDate": "2019-03-16", "purchasePrice": "R 1 200 000" },
+    { "unit": "28", "size": "87", "regDate": "-", "purchaseDate": "2020-05-11", "purchasePrice": "R 1 350 000" },
+    { "unit": "35", "size": "87", "regDate": "-", "purchaseDate": "2021-10-08", "purchasePrice": "R 1 370 000" }
+  ],
+  "ownership": { "ownLess5": "17", "own5": "18", "own8": "6", "own11": "24" },
+  "ageOwners": { "age18": "5", "age35": "20", "age50": "25", "age65": "7" }
+}
