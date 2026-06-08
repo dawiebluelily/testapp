@@ -10,7 +10,6 @@
    Then paste the Web App URL into the app's optional agent sheet URL field.
 */
 
-const SPREADSHEET_ID = '1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY';
 const SHEET_NAME = 'Agents';
 
 function doGet(e) {
@@ -28,7 +27,7 @@ function doGet(e) {
 }
 
 function getAgents_() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NAME) || ss.getSheets()[0];
   const values = sheet.getDataRange().getValues();
   if (!values.length) return [];

@@ -4,9 +4,6 @@
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-const DEFAULT_AGENT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY/edit?gid=0#gid=0";
-const DEFAULT_AGENT_SHEET_ID = "1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY";
-
 const BUILT_IN_AGENTS = [
   { name: "Dawie du Toit", cell: "084 062 4865", email: "dawie@bluelilysa.co.za", ffc: "1227449" },
   { name: "Ronel Coetzee", cell: "067 719 5527", email: "ronel@bluelilysa.co.za", ffc: "0285198" }
@@ -208,10 +205,9 @@ function mapAgentRows(rows) {
   }).filter(agent => agent.name || agent.cell || agent.email || agent.ffc);
 }
 function googleSheetCsvUrl(input) {
-  const raw = (input || DEFAULT_AGENT_SHEET_URL || "").trim();
-  const url = new URL(raw);
-  const id = (url.pathname.match(/\/spreadsheets\/d\/([^/]+)/) || [])[1] || DEFAULT_AGENT_SHEET_ID;
-  if (!id) return raw;
+  const url = new URL(input);
+  const id = (url.pathname.match(/\/spreadsheets\/d\/([^/]+)/) || [])[1];
+  if (!id) return input;
   const gid = url.searchParams.get("gid") || (url.hash.match(/gid=(\d+)/) || [null, "0"])[1] || "0";
   return `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv&gid=${gid}`;
 }
@@ -226,7 +222,7 @@ async function loadJsonpAgents(url) {
   });
 }
 async function loadAgentsFromUrl() {
-  const input = (els.agentSheetUrl.value || DEFAULT_AGENT_SHEET_URL || "").trim();
+  const input = (els.agentSheetUrl.value || "").trim();
   if (!input) {
     populateAgentDropdown(BUILT_IN_AGENTS);
     setAgentStatus("Built-in list ready", "success");
@@ -250,7 +246,7 @@ async function loadAgentsFromUrl() {
     console.warn(err);
     populateAgentDropdown(BUILT_IN_AGENTS);
     setAgentStatus("Built-in list loaded", "error");
-    setStatus("Default agent sheet could not be read. Built-in agents loaded. Publish the sheet or use the included Apps Script bridge for private sheets.", "error");
+    setStatus("Agent sheet could not be read. Built-in agents loaded. Use Apps Script for private sheets.", "error");
   } finally {
     els.loadAgentsBtn.disabled = false;
   }
@@ -845,6 +841,4 @@ els.saveJsonBtn.addEventListener("click", downloadJson);
 els.jsonFile.addEventListener("change", e => loadJson(e.target.files[0]));
 
 populateAgentDropdown(BUILT_IN_AGENTS);
-if (els.agentSheetUrl) els.agentSheetUrl.value = DEFAULT_AGENT_SHEET_URL;
 setTransferRows([]);
-loadAgentsFromUrl();

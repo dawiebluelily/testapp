@@ -12,7 +12,8 @@
       <div class="brand-block">
         <div class="logo-card"><img src="assets/blue-lily-logo.jpg" alt="Blue Lily Properties" /></div>
         <div>
-          <h1>Blue Lily Complex Report</h1>
+          <p class="eyebrow">Blue Lily Properties</p>
+          <h1>Complex Report Builder</h1>
           <p class="subtext">Clean rebuild: one TVA report upload, editable fields, prepared-by agent block, owner information excluded, Blue Lily styled PDF output.</p>
         </div>
       </div>
@@ -29,12 +30,12 @@
           <span id="agentStatus" class="pill">Built-in list ready</span>
         </div>
 
-        <label class="input-label" for="agentSheetUrl">Agent Google Sheet URL / Apps Script JSONP URL</label>
+        <label class="input-label" for="agentSheetUrl">Optional public Google Sheet URL / Apps Script JSONP URL</label>
         <div class="inline-row">
-          <input id="agentSheetUrl" type="url" value="https://docs.google.com/spreadsheets/d/1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY/edit?gid=0#gid=0" />
-          <button id="loadAgentsBtn" type="button">Reload Agents</button>
+          <input id="agentSheetUrl" type="url" placeholder="Paste public CSV Google Sheet URL or Apps Script URL" />
+          <button id="loadAgentsBtn" type="button">Load Agents</button>
         </div>
-        <p class="helper">This app is wired to the Blue Lily agent roster by default. The selected agent is printed on page 1 under “Prepared by”. You can still edit the agent details before export.</p>
+        <p class="helper">Agent information is always printed on page 1 under “Prepared by”. You can edit it before export.</p>
 
         <label class="input-label" for="agentSelect">Selected agent</label>
         <select id="agentSelect"></select>

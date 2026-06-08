@@ -67,15 +67,3 @@ First Name, Surname, Cell Phone, Email Address, FFC Number
 ## Notes
 
 TVA report layouts can change. This V2 parser supports both the old table-style transfer layout and the newer block-style transfer layout. If registration dates are not present in the TVA PDF, the app marks the registration date column as `-`.
-
-## Agent roster wired in
-
-The app is now wired to this default Blue Lily agent roster:
-
-`https://docs.google.com/spreadsheets/d/1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY/edit?gid=0#gid=0`
-
-On app load, it automatically tries to read the roster as CSV. If the Google Sheet is not publicly readable, use the included Apps Script bridge in `google-apps-script/Code.gs`. The bridge is already wired to the spreadsheet ID:
-
-`1OcpmU2rveF1s633NCvCy9BsZN--44lKocjqYSAx5wAY`
-
-Deploy the Apps Script as a Web App and paste that Web App URL into the Agent Google Sheet URL field.
